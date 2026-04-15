@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#ffffff",
+                    "on-surface-variant": "#aca7cc",
+                    "secondary-dim": "#ff50fc",
+                    "surface-container": "#181538",
+                    "error-dim": "#d7383b",
+                    "surface-container-highest": "#24204a",
+                    "tertiary-dim": "#9c42f4",
+                    "surface-variant": "#24204a",
+                    "primary-dim": "#27e5e8",
+                    "on-background": "#e7e2ff",
+                    "surface-tint": "#43f3f6",
+                    "outline-variant": "#474464",
+                    "on-primary": "#005859",
+                    "surface-container-lowest": "#000000",
+                    "on-error-container": "#ffa8a3",
+                    "background": "#0d0a27",
+                    "surface": "#0d0a27",
+                    "on-secondary-fixed-variant": "#910093",
+                    "primary-fixed-dim": "#27e5e8",
+                    "on-error": "#490006",
+                    "surface-bright": "#2a2653",
+                    "error-container": "#9f0519",
+                    "surface-container-high": "#1e1a41",
+                    "primary": "#43f3f6",
+                    "secondary-fixed-dim": "#ffa6f5",
+                    "primary-fixed": "#43f3f6",
+                    "tertiary-fixed": "#cc9bff",
+                    "outline": "#757294",
+                    "error": "#ff716c",
+                    "secondary": "#ff50fc",
+                    "on-secondary": "#3f0040",
+                    "surface-container-low": "#120f2f",
+                    "tertiary-fixed-dim": "#c389ff",
+                    "surface-dim": "#0d0a27",
+                    "secondary-container": "#a800aa",
+                    "on-secondary-container": "#fff5f9",
+                    "tertiary": "#bf81ff",
+                    "on-surface": "#e7e2ff",
+                    "on-primary-fixed": "#004344",
+                    "primary-container": "#16dfe2",
+                    "on-tertiary-fixed-variant": "#550096",
+                    "secondary-fixed": "#ffbdf5",
+                    "inverse-on-surface": "#555172",
+                    "on-primary-fixed-variant": "#006264",
+                    "on-tertiary-fixed": "#260049",
+                    "inverse-primary": "#006a6c",
+                    "on-tertiary": "#32005c",
+                    "on-primary-container": "#004a4b",
+                    "inverse-surface": "#fcf8ff",
+                    "tertiary-container": "#9c42f4",
+                    "on-secondary-fixed": "#610062"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0d0a27;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(67, 243, 246, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(191, 129, 255, 0.08) 0px, transparent 50%);
+            color: #e7e2ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(36, 32, 74, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 68, 100, 0.15);
+            box-shadow: inset 0 0 1px 1px rgba(67, 243, 246, 0.1);
+        }
+        .glowing-underline {
+            position: relative;
+        }
+        .glowing-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, #43f3f6, transparent);
+            box-shadow: 0 0 15px rgba(67, 243, 246, 0.5);
+            border-radius: 2px;
+        }
+        .custom-ring {
+            background: conic-gradient(from 180deg at 50% 50%, #43f3f6 0deg, #ff50fc 360deg);
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary/30 selection:text-primary min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] flex justify-between items-center px-8 h-20 w-full font-['Space_Grotesk'] tracking-tight">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">MEDIX AI</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Dashboard</a>
+<a class="text-cyan-400 border-b-2 border-cyan-400 pb-1" href="#">Study Library</a>
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Practice Exams</a>
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Visualizer</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary px-5 py-2 rounded-lg text-on-primary font-bold hover:scale-105 transition-transform active:scale-95">Go Pro</button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full cursor-pointer transition-all duration-300">notifications</span>
+<span class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full cursor-pointer transition-all duration-300">settings</span>
+</div>
+<img alt="User Avatar" class="w-10 h-10 rounded-full border border-white/20" data-alt="Modern high-resolution portrait of a medical professional with soft cinematic lighting and cool blue tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDysgHH51NRWd5Onptw5ix-8tzBe9zYgsttIvFpNAo0NXLaiKDEZ2Ryz6P6ud4PfJ0sVZo1u9485u5elbos20vUtHPA-swmvQ0yUsJvmJbHJHE7_rbiuhPs_LkpOC9PahIcIp6fFHadh4nGJZTPfy5sfanV1hH_6yRsWEKaHwuuERDhB549iLkdmsmSA8kdVNBKFjHWpEGSc8QyD4iC4M9Q7oEU3EqyEPSc8gidOlrZpZZtD2ik1kWM8S3LdTIVfH7kPw02rfrdcNhg"/>
+</div>
+</header>
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 pt-24 h-screen w-64 bg-slate-900/60 backdrop-blur-lg border-r border-white/5 shadow-2xl flex flex-col gap-2 p-4 font-['Manrope'] text-sm font-medium z-40">
+<div class="mb-8 px-4">
+<p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Neural Interface</p>
+<p class="text-cyan-400 text-xs flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> Active Session
+            </p>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-all duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">psychology</span> Neural Map
+            </div>
+<div class="flex items-center gap-3 p-3 bg-cyan-500/10 text-cyan-400 border-r-4 border-cyan-400 transition-all duration-200 cursor-pointer rounded-l-lg">
+<span class="material-symbols-outlined">body_system</span> Anatomy
+            </div>
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-all duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">pill</span> Pharmacology
+            </div>
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-all duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">biotech</span> Diagnostics
+            </div>
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-all duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">history</span> History
+            </div>
+</div>
+<div class="mt-auto pt-4 border-t border-white/5 space-y-1">
+<button class="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl mb-4 hover:bg-white/10 transition-colors">New Simulation</button>
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 transition-all cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">help_outline</span> Help Center
+            </div>
+<div class="flex items-center gap-3 p-3 text-slate-400 hover:bg-white/5 transition-all cursor-pointer rounded-lg">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-20 min-h-screen relative overflow-hidden">
+<!-- Sticky Search Bar Area -->
+<div class="sticky top-20 z-30 px-8 py-6 bg-background/80 backdrop-blur-md">
+<div class="max-w-4xl relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full bg-surface-container border border-outline-variant rounded-2xl py-4 pl-12 pr-6 text-on-surface focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-body text-lg" placeholder="Explore medical terminology, pathways, or neural patterns..." type="text"/>
+<!-- Suggestion Dropdown (Simulated) -->
+<div class="absolute top-full left-0 w-full mt-2 glass-panel rounded-2xl overflow-hidden hidden group-focus-within:block border border-primary/20">
+<div class="p-3 hover:bg-white/5 cursor-pointer flex items-center justify-between">
+<span class="font-medium">Myocardial Infarction</span>
+<span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">Clinical Pathology</span>
+</div>
+<div class="p-3 hover:bg-white/5 cursor-pointer flex items-center justify-between">
+<span class="font-medium">Mitral Valve Prolapse</span>
+<span class="text-xs text-secondary bg-secondary/10 px-2 py-1 rounded">Cardiology</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Split Layout -->
+<div class="px-8 pb-12 flex flex-col lg:flex-row gap-8">
+<!-- Left Panel (60%) -->
+<div class="lg:w-3/5 space-y-8">
+<div class="glass-panel p-10 rounded-[2rem] relative overflow-hidden">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-primary/10 blur-[100px] pointer-events-none"></div>
+<div class="relative">
+<span class="text-primary font-headline text-sm tracking-[0.2em] uppercase font-bold mb-4 block">Core Pathology Term</span>
+<h1 class="text-6xl font-headline font-bold text-on-surface glowing-underline mb-12 tracking-tight">Atrial Fibrillation</h1>
+<div class="space-y-10">
+<section>
+<h3 class="font-headline text-xl text-primary flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">description</span>
+                                    Definition
+                                </h3>
+<p class="text-lg leading-relaxed text-on-surface-variant font-light">
+                                    A supraventricular tachyarrhythmia characterized by rapid, uncoordinated atrial activation with consequent deterioration of atrial mechanical function. On ECG, it is defined by the replacement of consistent P waves by rapid oscillations or fibrillatory waves.
+                                </p>
+</section>
+<section class="grid grid-cols-2 gap-8">
+<div class="bg-surface-container-high/40 p-6 rounded-2xl border border-white/5">
+<h3 class="font-headline text-md text-secondary flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined">analytics</span>
+                                        Pathophysiology
+                                    </h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                        Often results from re-entrant wavelets within the pulmonary veins or left atrium. Remodeling of the atrial substrate over time leads to permanent conduction changes.
+                                    </p>
+</div>
+<div class="bg-surface-container-high/40 p-6 rounded-2xl border border-white/5">
+<h3 class="font-headline text-md text-tertiary flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined">clinical_notes</span>
+                                        Clinical Relevance
+                                    </h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                        High risk for thromboembolic stroke. Management involves rhythm or rate control and anticoagulation based on CHADS2-VASc scores.
+                                    </p>
+</div>
+</section>
+<div class="pt-6 border-t border-white/5 flex items-center justify-between">
+<div class="flex -space-x-3">
+<img alt="Expert" class="w-8 h-8 rounded-full border-2 border-surface shadow-md" data-alt="Female doctor smiling confident in medical scrub environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRfLcFZww8adKTeqGonE1U-y32fckWNth8nX9T8Q_lqB7X21M5GB3F9uHlRmjqqs6eCIf1m4pdJUqamwnhirOlu4NkxwxHnT0VbjJjU3vXEckyCgtpUdof9dvxi0-nKH2kZIG4YqnYtvaf0tNgyUFtoVFq3fnGmqQFqICazGKZao0B3N4HnBgpLdK1yDe8qLwHJXvf4RttMqrQPVEPvZ-9xhTMfpSSTlwqgncu1sK5KCpWJEycW_N9AcfPqOprlseZnziutlx2VFuW"/>
+<img alt="Expert" class="w-8 h-8 rounded-full border-2 border-surface shadow-md" data-alt="Male doctor with stethoscope around neck in high-tech clinic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2yTLPZnGGBWFGAhxiyj0_zUZMgdkUlBHajrRiG5mUKo9SYx94u39k0hwYQ7tJ4JSzSti3IrKZEjVi05d_J_XaGJmCLqyTl9-SRwVZL3Iq3jsUMuLwxGCi2yACah3l8CFYz4p7DozV55oG-mgiIzgkVaTwjv5fuF2kJT1sBgYmvczBVd52ak2aO9uydSfx5HXV5KB2OvoIa9-V53aqdEaktKstNwTvMG9O8DP65x9a-ohUc4fDCwVLRUz_LFTvEKETGImeReoqB5qS"/>
+<div class="w-8 h-8 rounded-full bg-surface-bright flex items-center justify-center text-[10px] font-bold border-2 border-surface">+12 Experts</div>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">bookmark</span> Save to Library
+                                    </button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-sm">share</span> Export Data
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel (40%) -->
+<div class="lg:w-2/5 space-y-8">
+<!-- Video Player Section -->
+<div class="glass-panel p-4 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_15px_rgba(138,43,226,0.1)] relative group">
+<div class="aspect-video rounded-[1.5rem] overflow-hidden relative">
+<img alt="Medix visualization" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Futuristic 3D medical visualization of human heart beating with glowing electrical neural pathways" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmKWIMyZOZhYftbRe7BlZcshLacPG8FSBGR0Segx3U9gkMpXzKFFaSzPXfc2n6_BxALS15HONQ3-ylnBVmkzk45EFXEEhoSybBWwpKyPV7QbcHanFlsCdCwe6xEfcT4wtCRx7hUsOAc7WlKxRT4PTn6qozFs3qUa47OMCeAfYAEe044I1j-lm5hkxmYJrCVLxi-TnmKskrw1R-j3MOcCY8B-62jb7EfhI-LFY-Ti2yu5F7RIsM1VeWRUV5x1DAg0nbbqBiObn4ARw3"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-all">
+<div class="w-16 h-16 rounded-full bg-primary/20 backdrop-blur-md flex items-center justify-center border border-primary/40 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 right-4 flex justify-between items-center text-xs text-white/80">
+<span class="bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">04:32 Neural Simulation</span>
+<span class="bg-primary/20 border border-primary/40 px-3 py-1 rounded-full backdrop-blur-md text-primary">Live Rendering</span>
+</div>
+</div>
+<div class="mt-4 px-2">
+<h4 class="font-headline font-bold text-lg text-on-surface">Atrial Electrical Modeling</h4>
+<p class="text-sm text-on-surface-variant">Module 12: Advanced Electrophysiology</p>
+</div>
+</div>
+<!-- Related Terms Chips -->
+<div class="glass-panel p-8 rounded-[2rem]">
+<h3 class="font-headline text-lg text-on-surface mb-6 flex items-center justify-between">
+                        Related Neural Nodes
+                        <span class="text-xs text-tertiary font-bold tracking-widest uppercase">Expand Map</span>
+</h3>
+<div class="flex flex-wrap gap-3">
+<a class="px-5 py-3 rounded-xl bg-surface-container-high hover:bg-primary/10 border border-outline-variant hover:border-primary text-sm font-medium transition-all duration-300 flex items-center gap-2 group" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#43f3f6]"></span>
+                            Wolff-Parkinson-White
+                        </a>
+<a class="px-5 py-3 rounded-xl bg-surface-container-high hover:bg-secondary/10 border border-outline-variant hover:border-secondary text-sm font-medium transition-all duration-300 flex items-center gap-2 group" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary group-hover:shadow-[0_0_8px_#ff50fc]"></span>
+                            Warfarin Therapy
+                        </a>
+<a class="px-5 py-3 rounded-xl bg-surface-container-high hover:bg-tertiary/10 border border-outline-variant hover:border-tertiary text-sm font-medium transition-all duration-300 flex items-center gap-2 group" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary group-hover:shadow-[0_0_8px_#bf81ff]"></span>
+                            Left Atrial Appendage
+                        </a>
+<a class="px-5 py-3 rounded-xl bg-surface-container-high hover:bg-primary/10 border border-outline-variant hover:border-primary text-sm font-medium transition-all duration-300 flex items-center gap-2 group" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#43f3f6]"></span>
+                            Ventricular Response
+                        </a>
+<a class="px-5 py-3 rounded-xl bg-surface-container-high hover:bg-white/5 border border-outline-variant text-sm font-medium transition-all duration-300 flex items-center gap-2 group" href="#">
+<span class="material-symbols-outlined text-xs">add</span> Explore More
+                        </a>
+</div>
+<!-- Specialized Component: Neural Progress Ring -->
+<div class="mt-12 pt-8 border-t border-white/5">
+<div class="flex items-center gap-6">
+<div class="relative w-24 h-24 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full custom-ring p-1">
+<div class="w-full h-full rounded-full bg-surface-container shadow-inner"></div>
+</div>
+<span class="relative font-headline text-2xl font-bold text-primary">84%</span>
+</div>
+<div>
+<h5 class="font-headline font-bold text-on-surface">Mastery Progress</h5>
+<p class="text-xs text-on-surface-variant mb-2">Electrophysiology Foundation</p>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-white/20"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Background Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-40">
+<div class="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[150px]"></div>
+<div class="absolute bottom-[20%] left-[5%] w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px]"></div>
+</div>
+</body></html>

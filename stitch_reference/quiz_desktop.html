@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEDIX AI - Neural Quiz Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#ffffff",
+                        "on-surface-variant": "#aca7cc",
+                        "secondary-dim": "#ff50fc",
+                        "surface-container": "#181538",
+                        "error-dim": "#d7383b",
+                        "surface-container-highest": "#24204a",
+                        "tertiary-dim": "#9c42f4",
+                        "surface-variant": "#24204a",
+                        "primary-dim": "#27e5e8",
+                        "on-background": "#e7e2ff",
+                        "surface-tint": "#43f3f6",
+                        "outline-variant": "#474464",
+                        "on-primary": "#005859",
+                        "surface-container-lowest": "#000000",
+                        "on-error-container": "#ffa8a3",
+                        "background": "#0d0a27",
+                        "surface": "#0d0a27",
+                        "on-secondary-fixed-variant": "#910093",
+                        "primary-fixed-dim": "#27e5e8",
+                        "on-error": "#490006",
+                        "surface-bright": "#2a2653",
+                        "error-container": "#9f0519",
+                        "surface-container-high": "#1e1a41",
+                        "primary": "#43f3f6",
+                        "secondary-fixed-dim": "#ffa6f5",
+                        "primary-fixed": "#43f3f6",
+                        "tertiary-fixed": "#cc9bff",
+                        "outline": "#757294",
+                        "error": "#ff716c",
+                        "secondary": "#ff50fc",
+                        "on-secondary": "#3f0040",
+                        "surface-container-low": "#120f2f",
+                        "tertiary-fixed-dim": "#c389ff",
+                        "surface-dim": "#0d0a27",
+                        "secondary-container": "#a800aa",
+                        "on-secondary-container": "#fff5f9",
+                        "tertiary": "#bf81ff",
+                        "on-surface": "#e7e2ff",
+                        "on-primary-fixed": "#004344",
+                        "primary-container": "#16dfe2",
+                        "on-tertiary-fixed-variant": "#550096",
+                        "secondary-fixed": "#ffbdf5",
+                        "inverse-on-surface": "#555172",
+                        "on-primary-fixed-variant": "#006264",
+                        "on-tertiary-fixed": "#260049",
+                        "inverse-primary": "#006a6c",
+                        "on-tertiary": "#32005c",
+                        "on-primary-container": "#004a4b",
+                        "inverse-surface": "#fcf8ff",
+                        "tertiary-container": "#9c42f4",
+                        "on-secondary-fixed": "#610062"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(36, 32, 74, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 68, 100, 0.15);
+        }
+        .neural-glow {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 15px rgba(138, 43, 226, 0.1);
+        }
+        .option-hover:hover {
+            box-shadow: inset 0 0 1px 1px rgba(67, 243, 246, 0.2), 0 0 20px rgba(67, 243, 246, 0.1);
+            transform: scale(1.02);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary-container overflow-hidden h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] flex justify-between items-center px-8 h-20 w-full font-['Space_Grotesk'] tracking-tight">
+<div class="flex items-center gap-8">
+<div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                MEDIX AI
+            </div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Dashboard</a>
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Study Library</a>
+<a class="text-cyan-400 border-b-2 border-cyan-400 pb-1" href="#">Practice Exams</a>
+<a class="text-slate-400 hover:text-white transition-colors" href="#">Visualizer</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full transition-all">notifications</button>
+<button class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full transition-all">settings</button>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary-container px-6 py-2 rounded-full font-bold hover:scale-105 active:scale-95 transition-all">
+                Go Pro
+            </button>
+<div class="w-10 h-10 rounded-full border border-primary/20 p-0.5">
+<img alt="User Avatar" class="w-full h-full rounded-full bg-surface-container-high" data-alt="Portrait of a young medical professional with short hair, wearing a white coat, stylized as a digital avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCumz5Zhjshub_UQmjnRVmbj-sC725RtJbaedgHPleLwkO4k8dqT6QAohR2ac9I7gez9KeVHtK-sVI5uOvENmTqEDaUt3uNfObJthpTf2GRw3v1ioOSkfxjUG4_TZmIfZdIxqEgZhBgUTNyuIrKLkmTWUezYk0cgAna1vunz3t68r8VjacOrhQvRtcp2_vKpToV3bixquxvdrgvonhhn-DSWWWs-5k39dYRp8x0ZL0S-Xb2U6jAQy4ggtlbeET0lVmFKkfmHM9WERnB"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Suppressed for focused Quiz layout as per instructions, but available as Neural Interface Sidebar) -->
+<aside class="h-screen w-64 left-0 top-0 pt-24 fixed bg-slate-900/60 backdrop-blur-lg border-r border-white/5 shadow-2xl flex flex-col gap-2 p-4 font-['Manrope'] text-sm font-medium z-40 hidden lg:flex">
+<div class="mb-6 px-2">
+<p class="text-primary text-[10px] uppercase tracking-[0.2em] font-bold">Neural Interface</p>
+<p class="text-on-surface-variant text-xs">Active Session: Pathology v2.4</p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">psychology</span>
+<span>Neural Map</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">body_system</span>
+<span>Anatomy</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">pill</span>
+<span>Pharmacology</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg bg-cyan-500/10 text-cyan-400 border-r-4 border-cyan-400 cursor-pointer">
+<span class="material-symbols-outlined">biotech</span>
+<span>Diagnostics</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">history</span>
+<span>History</span>
+</div>
+</div>
+<div class="mt-auto border-t border-white/5 pt-4 flex flex-col gap-1">
+<div class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Help Center</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg text-error hover:bg-error/5 hover:translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined">logout</span>
+<span>Sign Out</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 lg:ml-64 relative flex flex-col items-center justify-center px-4 overflow-hidden">
+<!-- Atmospheric Background elements -->
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -z-10"></div>
+<div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-tertiary/5 blur-[150px] rounded-full -z-10"></div>
+<!-- Quiz Container -->
+<div class="w-full max-w-4xl flex flex-col gap-8 mb-20 relative">
+<!-- Question Meta & Progress -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-end px-2">
+<div class="flex flex-col">
+<span class="text-tertiary text-xs font-bold tracking-widest uppercase mb-1">Module: Advanced Pathophysiology</span>
+<h2 class="font-headline text-3xl font-bold text-on-surface">Question 24 <span class="text-on-surface-variant font-light text-xl">/ 50</span></h2>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary">timer</span>
+<span class="font-headline text-2xl font-bold tabular-nums">08:42</span>
+</div>
+</div>
+<!-- Neural Progress Ring / Bar hybrid -->
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[48%] bg-gradient-to-r from-primary to-secondary transition-all duration-1000 shadow-[0_0_10px_rgba(67,243,246,0.5)]"></div>
+</div>
+</div>
+<!-- Central Quiz Card -->
+<div class="glass-panel neural-glow rounded-[2rem] p-10 md:p-14 relative group">
+<!-- Glowing corner accent -->
+<div class="absolute top-0 left-0 w-32 h-32 bg-primary/10 blur-2xl rounded-tl-[2rem] -z-10 opacity-50"></div>
+<div class="flex flex-col gap-10">
+<!-- The Question -->
+<div class="space-y-6">
+<p class="font-headline text-2xl md:text-3xl leading-relaxed text-on-surface font-medium">
+                            A 58-year-old patient presents with acute onset of severe substernal chest pain. The ECG reveals ST-segment elevation in leads V1-V4. Which coronary artery is most likely occluded?
+                        </p>
+<div class="flex gap-4">
+<span class="bg-surface-container-highest/60 text-primary-dim px-3 py-1 rounded-lg text-xs font-bold border border-primary/10">Cardiology</span>
+<span class="bg-surface-container-highest/60 text-tertiary-fixed-dim px-3 py-1 rounded-lg text-xs font-bold border border-tertiary/10">High Yield</span>
+</div>
+</div>
+<!-- Interactive Options (Bento Style Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Option A -->
+<button class="glass-panel option-hover text-left p-6 rounded-2xl flex items-center gap-6 group/option transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center font-headline font-bold text-xl text-primary border border-white/5 group-hover/option:bg-primary group-hover/option:text-on-primary transition-colors">A</div>
+<span class="font-body text-lg text-on-surface/90 group-hover/option:text-white">Right Coronary Artery</span>
+</button>
+<!-- Option B (Selected/Active State Example) -->
+<button class="bg-primary/10 border border-primary/40 p-6 rounded-2xl flex items-center gap-6 group/option transition-all duration-300 shadow-[0_0_20px_rgba(67,243,246,0.15)] relative">
+<div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-on-primary text-xs" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-headline font-bold text-xl text-on-primary">B</div>
+<span class="font-body text-lg text-primary font-bold">Left Anterior Descending</span>
+</button>
+<!-- Option C -->
+<button class="glass-panel option-hover text-left p-6 rounded-2xl flex items-center gap-6 group/option transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center font-headline font-bold text-xl text-primary border border-white/5 group-hover/option:bg-primary group-hover/option:text-on-primary transition-colors">C</div>
+<span class="font-body text-lg text-on-surface/90 group-hover/option:text-white">Circumflex Artery</span>
+</button>
+<!-- Option D -->
+<button class="glass-panel option-hover text-left p-6 rounded-2xl flex items-center gap-6 group/option transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center font-headline font-bold text-xl text-primary border border-white/5 group-hover/option:bg-primary group-hover/option:text-on-primary transition-colors">D</div>
+<span class="font-body text-lg text-on-surface/90 group-hover/option:text-white">Posterior Descending Artery</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Hint/AI Support Section (Bento sub-card) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2 glass-panel p-6 rounded-2xl flex items-center gap-4 hover:bg-white/5 transition-colors cursor-help group">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<h4 class="text-on-surface font-bold text-sm">Need a Neural Link?</h4>
+<p class="text-on-surface-variant text-xs">Unlock a mnemonic hint using 5 credits.</p>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-colors">
+<span class="text-on-surface-variant text-sm font-medium">Flag for Review</span>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-colors">flag</span>
+</div>
+</div>
+</div>
+<!-- Navigation / Action Footer -->
+<div class="fixed bottom-0 w-full lg:w-[calc(100%-16rem)] p-8 flex justify-center items-center pointer-events-none">
+<div class="pointer-events-auto flex items-center gap-6 w-full max-w-4xl">
+<button class="glass-panel h-16 w-16 rounded-full flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all active:scale-90">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="flex-grow h-16 rounded-2xl bg-gradient-to-r from-primary to-secondary p-[1px] group overflow-hidden">
+<div class="w-full h-full bg-surface-container-lowest/80 rounded-[calc(1rem-1px)] flex items-center justify-center gap-4 relative">
+<!-- Animated Gradient Background (CSS only) -->
+<div class="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+<span class="font-headline text-xl font-bold text-white relative z-10">Next Question</span>
+<span class="material-symbols-outlined text-white relative z-10 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</button>
+<button class="glass-panel h-16 px-8 rounded-2xl flex items-center gap-3 text-on-surface-variant hover:text-white hover:bg-white/10 transition-all font-bold">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">apps</span>
+<span>Summary</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Side Visual Deck (Hidden on smaller screens, context for the medical workstation feel) -->
+<div class="fixed top-24 right-8 w-80 bottom-8 hidden xl:flex flex-col gap-6">
+<div class="glass-panel p-6 rounded-3xl flex flex-col gap-4">
+<h5 class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Anatomical Reference</h5>
+<div class="aspect-square rounded-2xl overflow-hidden bg-surface-container-high relative">
+<img alt="Heart Reference" class="w-full h-full object-cover opacity-60 mix-blend-screen" data-alt="3d holographic human heart showing coronary arteries glowing with cyan and neon pink lights, futuristic medical interface on dark navy background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArRqjb-5IewA56uchuXq_CBeo_wjgUcgrOa53soGx3EymDdaXY7Se2xpTNd-M5GJxqGkJdgQ7L4a_n6JiASiNOgYNZyrHfOgt21ENDvWb5xxXEAw5alLflgOjTed9vH0pXwl1uVL5TP0czG90BmZD9XEP8FZyAJS7kXMqoG8JHvT1JGxoQfMhtQAlQMuqfuO4mIIqMx9u7Bkw6Jafc62QRHhcVsWl0XrM47ayyiXdmwnuRHtra5LmOiU1GtHX_Ej8t-gFRHrjT4g0p"/>
+<div class="absolute inset-0 border-[1px] border-primary/20 rounded-2xl pointer-events-none"></div>
+<div class="absolute bottom-2 right-2 flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+</div>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-3xl flex-grow flex flex-col gap-4">
+<h5 class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Session Stats</h5>
+<div class="flex flex-col gap-6 mt-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Accuracy</span>
+<span class="text-primary font-headline font-bold">88.5%</span>
+</div>
+<div class="w-full h-1 bg-surface-container rounded-full">
+<div class="h-full w-[88%] bg-primary shadow-[0_0_8px_rgba(67,243,246,0.6)]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Speed</span>
+<span class="text-secondary font-headline font-bold">12s/q</span>
+</div>
+<div class="w-full h-1 bg-surface-container rounded-full">
+<div class="h-full w-[45%] bg-secondary shadow-[0_0_8px_rgba(255,80,252,0.6)]"></div>
+</div>
+</div>
+<div class="mt-auto">
+<div class="bg-surface-container-highest p-4 rounded-xl border border-white/5">
+<p class="text-xs italic text-on-surface-variant leading-relaxed">
+                        "Your performance in Cardiac modules has increased by 14% this week. Focus on ECG lead correlations."
+                    </p>
+</div>
+</div>
+</div>
+</div>
+</body></html>

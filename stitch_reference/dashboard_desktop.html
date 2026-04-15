@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MEDIX AI - Neural Interface Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#ffffff",
+                        "on-surface-variant": "#aca7cc",
+                        "secondary-dim": "#ff50fc",
+                        "surface-container": "#181538",
+                        "error-dim": "#d7383b",
+                        "surface-container-highest": "#24204a",
+                        "tertiary-dim": "#9c42f4",
+                        "surface-variant": "#24204a",
+                        "primary-dim": "#27e5e8",
+                        "on-background": "#e7e2ff",
+                        "surface-tint": "#43f3f6",
+                        "outline-variant": "#474464",
+                        "on-primary": "#005859",
+                        "surface-container-lowest": "#000000",
+                        "on-error-container": "#ffa8a3",
+                        "background": "#0d0a27",
+                        "surface": "#0d0a27",
+                        "on-secondary-fixed-variant": "#910093",
+                        "primary-fixed-dim": "#27e5e8",
+                        "on-error": "#490006",
+                        "surface-bright": "#2a2653",
+                        "error-container": "#9f0519",
+                        "surface-container-high": "#1e1a41",
+                        "primary": "#43f3f6",
+                        "secondary-fixed-dim": "#ffa6f5",
+                        "primary-fixed": "#43f3f6",
+                        "tertiary-fixed": "#cc9bff",
+                        "outline": "#757294",
+                        "error": "#ff716c",
+                        "secondary": "#ff50fc",
+                        "on-secondary": "#3f0040",
+                        "surface-container-low": "#120f2f",
+                        "tertiary-fixed-dim": "#c389ff",
+                        "surface-dim": "#0d0a27",
+                        "secondary-container": "#a800aa",
+                        "on-secondary-container": "#fff5f9",
+                        "tertiary": "#bf81ff",
+                        "on-surface": "#e7e2ff",
+                        "on-primary-fixed": "#004344",
+                        "primary-container": "#16dfe2",
+                        "on-tertiary-fixed-variant": "#550096",
+                        "secondary-fixed": "#ffbdf5",
+                        "inverse-on-surface": "#555172",
+                        "on-primary-fixed-variant": "#006264",
+                        "on-tertiary-fixed": "#260049",
+                        "inverse-primary": "#006a6c",
+                        "on-tertiary": "#32005c",
+                        "on-primary-container": "#004a4b",
+                        "inverse-surface": "#fcf8ff",
+                        "tertiary-container": "#9c42f4",
+                        "on-secondary-fixed": "#610062"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0d0a27;
+            color: #e7e2ff;
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(36, 32, 74, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 68, 100, 0.15);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 15px rgba(67, 243, 246, 0.2);
+        }
+        .neon-glow-secondary {
+            box-shadow: 0 0 15px rgba(255, 80, 252, 0.1);
+        }
+        .neural-gradient-bg {
+            background: radial-gradient(circle at 50% -20%, rgba(67, 243, 246, 0.15) 0%, rgba(13, 10, 39, 1) 70%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="neural-gradient-bg min-h-screen">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-8 h-20 w-full shadow-[0_8px_32px_0_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent font-['Space_Grotesk'] tracking-tight">MEDIX AI</span>
+<div class="hidden md:flex gap-6">
+<a class="font-['Space_Grotesk'] tracking-tight text-cyan-400 border-b-2 border-cyan-400 pb-1" href="#">Dashboard</a>
+<a class="font-['Space_Grotesk'] tracking-tight text-slate-400 hover:text-white transition-colors" href="#">Study Library</a>
+<a class="font-['Space_Grotesk'] tracking-tight text-slate-400 hover:text-white transition-colors" href="#">Practice Exams</a>
+<a class="font-['Space_Grotesk'] tracking-tight text-slate-400 hover:text-white transition-colors" href="#">Visualizer</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="bg-surface-container-low border border-outline-variant/30 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-all w-64" placeholder="Search neural database..." type="text"/>
+</div>
+<div class="flex gap-4 items-center">
+<button class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full transition-all">notifications</button>
+<button class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-full transition-all">settings</button>
+<button class="bg-primary hover:scale-105 active:scale-95 transition-all text-on-primary font-bold px-6 py-2 rounded-xl text-sm">Go Pro</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary/30 overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Portrait of a medical professional with a friendly expression, soft studio lighting, clinical but modern aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeS9hA6kCXMRBJFFMrDPraqqoStJRD2MNpZjErBxfLzOwYGweagbpuPgfg2oPzm3FJm2A4L5biDzJwDTMAo_sEpjvunSh6qpqpmdVgf1i9lsN0VWfDQDtKo4TDLXe9Vri8lHdMXbFahW6M04fUq_TDQ8T3rKr3C5mllgqWmrqk5OprFrrc3C1AqKZvBihdA6IDHemn_JQZNSSssWqIGwKqcvTLR6dbFOHXLQwiAIiPk9-71xCVvc36hAHwL3fp9oHUO78_P4myYmZ_"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed h-screen w-64 left-0 top-0 pt-24 bg-slate-900/60 backdrop-blur-lg border-r border-white/5 shadow-2xl flex flex-col gap-2 p-4 z-40 hidden md:flex">
+<div class="mb-8 px-4">
+<h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 font-body">Neural Interface</h3>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-sm font-medium text-cyan-400">Active Session</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-slate-400 hover:bg-white/5 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-medium text-sm">Neural Map</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-slate-400 hover:bg-white/5 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="body_system">body_system</span>
+<span class="font-medium text-sm">Anatomy</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-slate-400 hover:bg-white/5 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="pill">pill</span>
+<span class="font-medium text-sm">Pharmacology</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-slate-400 hover:bg-white/5 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-medium text-sm">Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer text-slate-400 hover:bg-white/5 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-medium text-sm">History</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-white/5 flex flex-col gap-1">
+<button class="w-full bg-surface-container-highest border border-primary/20 text-primary py-3 rounded-xl font-bold text-sm mb-4 flex items-center justify-center gap-2 hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Simulation
+            </button>
+<a class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+                Help Center
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="md:ml-64 pt-28 pb-12 px-8">
+<!-- Welcome Message -->
+<header class="mb-10 relative">
+<div class="flex flex-col md:flex-row justify-between items-end gap-4">
+<div>
+<h1 class="text-4xl md:text-5xl font-headline font-bold text-on-surface mb-2 tracking-tight">Welcome back, Dr. Aris</h1>
+<p class="text-on-surface-variant font-body text-lg">Your neural synthesis for <span class="text-secondary font-bold">Endocrinology</span> is 84% complete.</p>
+</div>
+<div class="glass-panel px-6 py-4 rounded-2xl flex items-center gap-4 border-l-4 border-primary">
+<div class="text-right">
+<div class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Study Streak</div>
+<div class="text-2xl font-headline font-bold">14 Days</div>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Recent Searches (Horizontal Cards) -->
+<section class="col-span-12">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-headline font-semibold text-on-surface">Recent Focus Areas</h2>
+<button class="text-sm text-tertiary font-bold hover:underline">View All</button>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<div class="min-w-[280px] glass-panel p-5 rounded-2xl group hover:bg-surface-container-highest/60 hover:translate-y-[-4px] transition-all duration-300 cursor-pointer border-t border-l border-white/5">
+<div class="flex justify-between mb-4">
+<span class="bg-primary/10 text-primary text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-widest">Cardiology</span>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h3 class="text-lg font-headline font-bold mb-1">Atrial Fibrillation</h3>
+<p class="text-xs text-on-surface-variant mb-4">Electrophysiology and Rate Control</p>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-slate-800 border border-surface flex items-center justify-center text-[10px]">AI</div>
+<div class="w-6 h-6 rounded-full bg-slate-700 border border-surface flex items-center justify-center text-[10px]">MD</div>
+</div>
+</div>
+<div class="min-w-[280px] glass-panel p-5 rounded-2xl group hover:bg-surface-container-highest/60 hover:translate-y-[-4px] transition-all duration-300 cursor-pointer border-t border-l border-white/5">
+<div class="flex justify-between mb-4">
+<span class="bg-secondary/10 text-secondary text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-widest">Neurology</span>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-secondary transition-colors">north_east</span>
+</div>
+<h3 class="text-lg font-headline font-bold mb-1">Synaptic Plasticity</h3>
+<p class="text-xs text-on-surface-variant mb-4">Long-term Potentiation Mechanisms</p>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[65%]"></div>
+</div>
+</div>
+<div class="min-w-[280px] glass-panel p-5 rounded-2xl group hover:bg-surface-container-highest/60 hover:translate-y-[-4px] transition-all duration-300 cursor-pointer border-t border-l border-white/5">
+<div class="flex justify-between mb-4">
+<span class="bg-tertiary/10 text-tertiary text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-widest">Pharma</span>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-tertiary transition-colors">north_east</span>
+</div>
+<h3 class="text-lg font-headline font-bold mb-1">SGLT2 Inhibitors</h3>
+<p class="text-xs text-on-surface-variant mb-4">Renal Clearance &amp; Nephroprotection</p>
+<div class="text-[10px] font-bold text-tertiary bg-tertiary/5 px-2 py-1 rounded w-max italic">New Protocol Added</div>
+</div>
+<div class="min-w-[280px] glass-panel p-5 rounded-2xl group hover:bg-surface-container-highest/60 hover:translate-y-[-4px] transition-all duration-300 cursor-pointer border-t border-l border-white/5">
+<div class="flex justify-between mb-4">
+<span class="bg-primary/10 text-primary text-[10px] font-extrabold px-2 py-1 rounded-full uppercase tracking-widest">Radiology</span>
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors">north_east</span>
+</div>
+<h3 class="text-lg font-headline font-bold mb-1">Contrast MRI</h3>
+<p class="text-xs text-on-surface-variant mb-4">Gadolinium Deposition Analysis</p>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Quiz Performance (Circular Progress) -->
+<section class="col-span-12 lg:col-span-4 flex flex-col">
+<h2 class="text-xl font-headline font-semibold text-on-surface mb-4">Exam Mastery</h2>
+<div class="glass-panel flex-1 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Background Glow -->
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 blur-[80px] rounded-full"></div>
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-secondary/10 blur-[80px] rounded-full"></div>
+<!-- The Neural Progress Ring -->
+<div class="relative w-56 h-56 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="112" cy="112" fill="transparent" r="100" stroke="currentColor" stroke-width="12"></circle>
+<circle cx="112" cy="112" fill="transparent" r="100" stroke="url(#neuralGradient)" stroke-dasharray="628" stroke-dashoffset="138" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="neuralGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#43f3f6"></stop>
+<stop offset="100%" stop-color="#ff50fc"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="text-5xl font-headline font-bold">78<span class="text-2xl text-primary">%</span></span>
+<span class="text-xs font-body text-on-surface-variant font-medium tracking-widest uppercase">Global Rank</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 w-full mt-8">
+<div class="bg-surface-container-low p-4 rounded-2xl border border-white/5">
+<div class="text-xs text-on-surface-variant mb-1">Accuracy</div>
+<div class="text-xl font-headline font-bold text-primary">92%</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-2xl border border-white/5">
+<div class="text-xs text-on-surface-variant mb-1">Speed</div>
+<div class="text-xl font-headline font-bold text-secondary">0.8s</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Suggested Topics (AI-generated cards) -->
+<section class="col-span-12 lg:col-span-5 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-headline font-semibold text-on-surface">Neural Suggestions</h2>
+<span class="text-[10px] bg-cyan-400/20 text-cyan-400 px-2 py-0.5 rounded font-bold uppercase tracking-tighter">AI Optimized</span>
+</div>
+<div class="grid grid-cols-1 gap-4 flex-1">
+<div class="glass-panel p-4 rounded-2xl flex gap-4 group hover:bg-surface-container-highest transition-all duration-300">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Topic" class="w-full h-full object-cover" data-alt="Microscopic view of neural pathways glowing with electric blue and purple pulses of data transmission" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB27_OUl97QB83XYJx2x1qBtBfVPQYrLGYa_J-23RpAsVBNzoqehfGtq_zOpmGaXs0HWqwt6yEUMrhxVebQZGh5tmPxW7CZqbCEE05wmEaHFSLKKWmQMSWLM4Y2MSD2XLlh4YiKkJlYMssq1m729oMdr4lKOgiLVMUToR-wjPhzS0xdV-LtGc9RDhSZJgien_ysD0PpQo82bJx33-voCKbAEAEUHE1FgaS7A8uW6jlLYiENEiK2fBaXIyImr2lzaWpex-BNxrlELTsH"/>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">Cellular Signaling Path</h3>
+<p class="text-sm text-on-surface-variant line-clamp-1">Reviewing JAK-STAT and GPCR interactions.</p>
+<div class="mt-2 flex items-center gap-4 text-[10px] font-bold text-slate-500">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">timer</span> 12 min</span>
+<span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-xs">trending_up</span> High Yield</span>
+</div>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl flex gap-4 group hover:bg-surface-container-highest transition-all duration-300">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Topic" class="w-full h-full object-cover" data-alt="Laboratory flask with iridescent liquid reflecting laboratory neon lights in a futuristic medical research setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9mrMQZAXppSiAnjUzdk0YXgMR00nbmT81hVpyMfIzCN54ZtJ7KKsrAOxdckNqbyt0q2qbWhhpbjzQ5a2-wqPY5MEb3yzu94vb5peUZhQLbgDvQ7PJoCQhsVHAgvytHB5KZgNK8m6GDRXawJ6AD84iZclKy1ORUoA9KY9k4Fks-Hh2Bn3W41rSQ5lTarXx9CtT8W_YgqE0dI8wjHGkA5OZ5KsrBYbbjV_wDAr8P3CGBkrpX5g4ScZEyb94P6IUu9tUmsXVUcKw5zCp"/>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-headline font-bold text-on-surface group-hover:text-secondary transition-colors">Antibiotic Resistance</h3>
+<p class="text-sm text-on-surface-variant line-clamp-1">Mechanisms of beta-lactamase evasion.</p>
+<div class="mt-2 flex items-center gap-4 text-[10px] font-bold text-slate-500">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">timer</span> 8 min</span>
+<span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-xs">error</span> Gap Detected</span>
+</div>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl flex gap-4 group hover:bg-surface-container-highest transition-all duration-300">
+<div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Topic" class="w-full h-full object-cover" data-alt="Futuristic anatomical scan of human heart with digital overlays of arterial flow and pressure points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmD-4xgg7gFFkS3qy_imQ6iuq1jIG-7nHJ5jVM_t9uxLsiP7ncwf64MJTEGQKanLELwqM0T3ox2jPizKpel18TOh5KJm9qTb2n6gfaKwLfERLEhdwQVeg0kbAJSxKpBKvFJo8HX6hNqmmwJrLyao99VjyDoFhfjbtLYPgQuOG5DAX37jw_iC4s-aWc0EA30JUdBjPotTYEWeARZBB3ZeXYYCMyYIBahiqviNVSZc-RUNuf--vOEpfcZJ83sOMk3pEp36LqA8JfjmbR"/>
+</div>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-headline font-bold text-on-surface group-hover:text-tertiary transition-colors">Hemodynamics III</h3>
+<p class="text-sm text-on-surface-variant line-clamp-1">Advanced fluid dynamics in valve stenosis.</p>
+<div class="mt-2 flex items-center gap-4 text-[10px] font-bold text-slate-500">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">timer</span> 15 min</span>
+<span class="flex items-center gap-1 text-tertiary"><span class="material-symbols-outlined text-xs">psychology</span> Complex Logic</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Activity Timeline (Vertical) -->
+<section class="col-span-12 lg:col-span-3 flex flex-col">
+<h2 class="text-xl font-headline font-semibold text-on-surface mb-4">Neural Log</h2>
+<div class="glass-panel flex-1 rounded-3xl p-6 relative overflow-hidden">
+<div class="relative space-y-8">
+<!-- Connecting Line -->
+<div class="absolute left-[11px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-primary via-secondary to-transparent opacity-30"></div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-surface-container-highest border border-primary flex items-center justify-center neon-glow-primary z-10">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="text-[10px] font-bold text-primary uppercase tracking-tighter mb-1">09:12 AM</div>
+<div class="font-body text-sm font-semibold text-on-surface">Ethics Quiz Completed</div>
+<div class="text-xs text-on-surface-variant">Score: 100% (Elite Status)</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-surface-container-highest border border-secondary flex items-center justify-center neon-glow-secondary z-10">
+<span class="material-symbols-outlined text-[14px] text-secondary">import_contacts</span>
+</div>
+<div class="text-[10px] font-bold text-secondary uppercase tracking-tighter mb-1">Yesterday</div>
+<div class="font-body text-sm font-semibold text-on-surface">3D Anatomy Explored</div>
+<div class="text-xs text-on-surface-variant">2.5 hours on Cranial Nerves</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-surface-container-highest border border-tertiary flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[14px] text-tertiary">military_tech</span>
+</div>
+<div class="text-[10px] font-bold text-tertiary uppercase tracking-tighter mb-1">2 Days Ago</div>
+<div class="font-body text-sm font-semibold text-on-surface">Achievement Unlocked</div>
+<div class="text-xs text-on-surface-variant">Pharmacology Master Level 4</div>
+</div>
+<div class="relative pl-8 opacity-50">
+<div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[14px] text-slate-500">schedule</span>
+</div>
+<div class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter mb-1">Scheduled</div>
+<div class="font-body text-sm font-semibold text-on-surface">Weekly Mock Exam</div>
+<div class="text-xs text-on-surface-variant">Saturday at 10:00 AM</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB (Suppressed as per rules on dashboard context, but visual placeholder if needed for mobile) -->
+<div class="md:hidden fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 rounded-2xl bg-primary text-on-primary shadow-2xl flex items-center justify-center transform active:scale-90 transition-transform neon-glow-primary">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<!-- Mobile BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-16 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 flex items-center justify-around z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold">Dash</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-[10px] font-bold">Learn</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">quiz</span>
+<span class="text-[10px] font-bold">Quiz</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</button>
+</nav>
+</body></html>

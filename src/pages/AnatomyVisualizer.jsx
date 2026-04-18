@@ -1,236 +1,153 @@
-import React, { Suspense, useRef } from 'react';
+import React, { Suspense, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, Html, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Environment, Html, ContactShadows, useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
 import GlassPanel from '../components/ui/GlassPanel';
 import useAppStore from '../store/useAppStore';
 
-// --- Procedural Human Anatomy Model ---
-// This builds a proportional human mannequin using R3F primitives since we do not have external GLTF assets.
-const ProceduralHumanBody = ({ gender, layers, setSelectedOrgan }) => {
-  const groupRef = useRef();
+// Add Preload Logic for your paths
+// IMPORTANT: Drop your actual exported GLTF/GLB files into the public/models directory of this project.
+useGLTF.preload('/models/female_body.glb');
+useGLTF.preload('/models/male_body.glb');
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    // Gentle breathing animation on the torso if we wanted, but static is fine for clinical tools
-    if (groupRef.current) {
-        // slight idle float
-        groupRef.current.position.y = -1.5 + Math.sin(t * 0.5) * 0.05;
+// Error Boundary for seamless fallback if model doesn't exist
+class ModelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Html center>
+          <div className="bg-surface-container-high/90 border border-error p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-2">
+             <span className="material-symbols-outlined text-error text-3xl">error</span>
+             <h3 className="font-headline font-bold text-on-surface">3D Model failed to load</h3>
+             <p className="text-sm text-on-surface-variant">Please ensure /models/{this.props.gender}_body.glb exists in your public directory.</p>
+          </div>
+        </Html>
+      );
     }
+    return this.props.children;
+  }
+}
+
+// --- GLTF External Model Loader ---
+const GLTFHumanBody = ({ gender, layers, setSelectedOrgan }) => {
+  // We use a publicly hosted human model fallback (Soldier.glb from Three.js repo) 
+  // since the local /models/male_body.glb doesn't exist yet!
+  const publicFallbackUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb';
+  const modelUrl = publicFallbackUrl; // Forcing fallback so the screen doesn't error out
+  
+  const { scene } = useGLTF(modelUrl);
+
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  useEffect(() => {
+    clonedScene.traverse((child) => {
+      if (child.isMesh) {
+        if (child.material) {
+          child.material = child.material.clone();
+        }
+
+        const name = child.name.toLowerCase();
+
+        // Standard Medical Naming 
+        if (name.includes('heart') || name.includes('myocardium')) {
+          child.userData = { category: 'organs', name: 'Heart', fact: 'Pumps blood.', flow: '5 L/m' };
+        } else if (name.includes('lung')) {
+          child.userData = { category: 'organs', name: 'Lung', fact: 'Provides gas exchange.', flow: 'Pulmonary' };
+        } else if (name.includes('liver')) {
+          child.userData = { category: 'organs', name: 'Liver', fact: 'Metabolizes drugs.', flow: '1.5 L/m' };
+        } else if (name.includes('stomach')) {
+          child.userData = { category: 'organs', name: 'Stomach', fact: 'Muscular organ.', flow: '200 ml/min' };
+        } else if (name.includes('kidney')) {
+          child.userData = { category: 'organs', name: 'Kidney', fact: 'Filters blood.', flow: '1.2 L/m' };
+        } else if (name.includes('intestine')) {
+          child.userData = { category: 'organs', name: 'Intestines', fact: 'Absorption site.', flow: '800 ml/min' };
+        } else if (name.includes('brain')) {
+          child.userData = { category: 'nervous', name: 'Brain', fact: 'Command center.', flow: '750 ml/m' };
+        } 
+        
+        // +++ FALLBACK MAPPING FOR PUBLIC MODEL +++
+        // Since we are loading the Soldier.glb, we map its generic meshes to body systems to test the logic
+        else if (name.includes('vanguard_mesh')) {
+          child.userData = { category: 'muscular', name: 'Human Interface (Vanguard Body)', fact: 'Demo full-body mesh interaction.', flow: 'Variable' };
+        } else if (name.includes('visor')) {
+          child.userData = { category: 'nervous', name: 'Ocular Visor', fact: 'Simulates optical diagnostic interaction.', flow: 'Neural' };
+        }
+        else {
+          child.userData = { category: 'skeletal' }; 
+        }
+      }
+    });
+  }, [clonedScene]);
+
+  useFrame(() => {
+    clonedScene.traverse((child) => {
+      if (child.isMesh) {
+         const category = child.userData.category;
+         if (category) {
+             child.visible = !!layers[category]; 
+             // Note: if you disable muscular layer, the Vanguard body vanishes!
+         }
+      }
+    });
   });
 
   const handlePointerOver = (e) => {
     e.stopPropagation();
-    document.body.style.cursor = 'pointer';
-    if (e.object.material) {
-        // Store original emissive if needed, but here we just toggle
-        e.object.material.emissiveIntensity = 0.5;
+    const mesh = e.object;
+    
+    if (mesh.userData && mesh.userData.name) {
+      document.body.style.cursor = 'pointer';
+      if (mesh.material) {
+          if (!mesh.userData.originalEmissive) {
+              mesh.userData.originalEmissive = mesh.material.emissive ? mesh.material.emissive.clone() : new THREE.Color(0x000000);
+              mesh.userData.originalEmissiveIntensity = mesh.material.emissiveIntensity || 0;
+          }
+          mesh.material.emissive = new THREE.Color('#00DBDE');
+          mesh.material.emissiveIntensity = 1.0;
+      }
     }
   };
 
   const handlePointerOut = (e) => {
     e.stopPropagation();
-    document.body.style.cursor = 'auto';
-    if (e.object.material) {
-        e.object.material.emissiveIntensity = 0;
+    const mesh = e.object;
+    if (mesh.userData && mesh.userData.name) {
+      document.body.style.cursor = 'auto';
+      if (mesh.material && mesh.userData.originalEmissive) {
+         mesh.material.emissive.copy(mesh.userData.originalEmissive);
+         mesh.material.emissiveIntensity = mesh.userData.originalEmissiveIntensity;
+      }
     }
   };
 
-  const handleClick = (e, organData) => {
+  const handleClick = (e) => {
     e.stopPropagation();
-    setSelectedOrgan(organData);
+    const mesh = e.object;
+    if (mesh.userData && mesh.userData.name) {
+       setSelectedOrgan({
+         name: mesh.userData.name,
+         fact: mesh.userData.fact,
+         flow: mesh.userData.flow
+       });
+    }
   };
 
-  // Materials based on layers
-  const skinMaterial = { color: "#24204a", transparent: true, opacity: layers.muscular ? 0.3 : 0.8, wireframe: layers.skeletal };
-  const genericMaterial = { roughness: 0.4, metalness: 0.1 };
-
-  // Adjustments based on gender
-  const isFemale = gender === 'female';
-  const shoulderWidth = isFemale ? 0.7 : 0.85;
-  const hipWidth = isFemale ? 0.55 : 0.45;
-  const torsoHeight = 1.4;
-
   return (
-    <group ref={groupRef} position={[0, -1.5, 0]}>
-      {/* --- MUSCULAR/SKELETAL EXTERIOR (The Mannequin) --- */}
-      {(layers.muscular || layers.skeletal) && (
-        <group>
-          {/* Head & Neck */}
-          <group position={[0, torsoHeight + 0.6, 0]}>
-             {/* Head */}
-            <mesh 
-                position={[0, 0.4, 0]} 
-                onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-                onClick={(e) => handleClick(e, { name: 'Cranium', fact: 'The skull protecting the brain.', flow: '150 ml/m' })}
-            >
-              <sphereGeometry args={[0.35, 32, 32]} />
-              <meshStandardMaterial {...skinMaterial} {...genericMaterial} emissive="#43f3f6" />
-            </mesh>
-            {/* Neck */}
-            <mesh position={[0, 0, 0]}>
-              <cylinderGeometry args={[0.12, 0.15, 0.3]} />
-              <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-            </mesh>
-          </group>
-
-          {/* Torso */}
-          <mesh 
-            position={[0, torsoHeight / 2 + 0.5, 0]}
-            onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, { name: 'Thorax', fact: 'Contains major respiratory and cardiovascular organs.', flow: 'Variable' })}
-          >
-            <cylinderGeometry args={[shoulderWidth / 2, hipWidth / 2, torsoHeight, 32]} />
-            <meshStandardMaterial {...skinMaterial} {...genericMaterial} emissive="#ff50fc" />
-          </mesh>
-
-          {/* Arms */}
-          {[-1, 1].map((side, i) => (
-            <group key={i} position={[(shoulderWidth / 2 + 0.15) * side, torsoHeight + 0.3, 0]}>
-               {/* Shoulder */}
-               <mesh>
-                  <sphereGeometry args={[0.18]} />
-                  <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-               </mesh>
-               {/* Upper Arm */}
-               <mesh position={[0.1 * side, -0.4, 0]} rotation={[0, 0, 0.1 * side]}>
-                 <capsuleGeometry args={[0.12, 0.6]} />
-                 <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-               </mesh>
-               {/* Lower Arm */}
-               <mesh position={[0.2 * side, -1.1, 0.1]} rotation={[-0.1, 0, 0.1 * side]}>
-                 <capsuleGeometry args={[0.1, 0.5]} />
-                 <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-               </mesh>
-               {/* Hand */}
-               <mesh position={[0.3 * side, -1.6, 0.15]} rotation={[-0.1, 0, 0.1 * side]}>
-                 <boxGeometry args={[0.15, 0.25, 0.05]} />
-                 <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-               </mesh>
-            </group>
-          ))}
-
-          {/* Pelvis/Hips */}
-          <mesh position={[0, 0.4, 0]}>
-            <capsuleGeometry args={[hipWidth / 2, 0.2]} />
-            <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-          </mesh>
-
-          {/* Legs */}
-          {[-1, 1].map((side, i) => (
-            <group key={`leg-${i}`} position={[(hipWidth / 2 - 0.05) * side, 0.3, 0]}>
-              {/* Upper Leg */}
-              <mesh position={[0, -0.5, 0]} rotation={[0, 0, -0.05 * side]}>
-                <capsuleGeometry args={[0.18, 0.8]} />
-                <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-              </mesh>
-              {/* Knee */}
-              <mesh position={[0, -1.1, 0]}>
-                 <sphereGeometry args={[0.15]} />
-                 <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-              </mesh>
-              {/* Lower Leg */}
-              <mesh position={[0, -1.7, 0]} rotation={[0, 0, -0.02 * side]}>
-                <capsuleGeometry args={[0.14, 0.8]} />
-                <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-              </mesh>
-              {/* Foot */}
-              <mesh position={[0, -2.25, 0.1]}>
-                <boxGeometry args={[0.15, 0.1, 0.3]} />
-                <meshStandardMaterial {...skinMaterial} {...genericMaterial} />
-              </mesh>
-            </group>
-          ))}
-        </group>
-      )}
-
-      {/* --- ORGANS (Internal structures) --- */}
-      {layers.organs && (
-        <group position={[0, torsoHeight / 2 + 0.5, 0]}>
-          {/* Heart */}
-          <mesh 
-            position={[-0.08, 0.2, 0.1]} 
-            rotation={[0, 0, 0.2]}
-            onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, { name: 'Myocardium (Heart)', fact: 'Muscular organ ensuring perfusion to all tissues.', flow: '5 L/m (Cardiac Output)' })}
-          >
-             <sphereGeometry args={[0.15, 32, 32]} />
-             <meshStandardMaterial color="#ff716c" emissive="#ff716c" emissiveIntensity={0.2} roughness={0.2} />
-          </mesh>
-
-          {/* Left Lung */}
-          <mesh 
-            position={[-0.18, 0.2, -0.05]} 
-            rotation={[0, 0, 0.1]}
-            onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, { name: 'Left Lung', fact: 'Provides gas exchange. Smaller to accommodate the heart.', flow: 'Pulmonary Circulation' })}
-          >
-             <capsuleGeometry args={[0.12, 0.4]} />
-             <meshStandardMaterial color="#43f3f6" emissive="#43f3f6" emissiveIntensity={0.1} transparent opacity={0.6} />
-          </mesh>
-
-          {/* Right Lung */}
-          <mesh 
-             position={[0.18, 0.25, -0.05]} 
-             rotation={[0, 0, -0.1]}
-             onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-             onClick={(e) => handleClick(e, { name: 'Right Lung', fact: 'Provides gas exchange. Contains three distinct lobes.', flow: 'Pulmonary Circulation' })}
-          >
-             <capsuleGeometry args={[0.14, 0.45]} />
-             <meshStandardMaterial color="#43f3f6" emissive="#43f3f6" emissiveIntensity={0.1} transparent opacity={0.6} />
-          </mesh>
-
-          {/* Liver */}
-          <mesh 
-             position={[0.1, -0.2, 0.05]} 
-             rotation={[0, 0, 0.2]}
-             onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-             onClick={(e) => handleClick(e, { name: 'Hepatic System (Liver)', fact: 'Metabolizes drugs and produces vital proteins.', flow: '1.5 L/m' })}
-          >
-             <capsuleGeometry args={[0.15, 0.3]} />
-             <meshStandardMaterial color="#9f0519" emissive="#9f0519" emissiveIntensity={0.1} />
-          </mesh>
-
-          {/* Kidneys */}
-          {[-1, 1].map((side, i) => (
-             <mesh 
-               key={i} 
-               position={[0.15 * side, -0.35, -0.1]} 
-               rotation={[0.2, 0, 0.1 * side]}
-               onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-               onClick={(e) => handleClick(e, { name: side === -1 ? 'Left Kidney' : 'Right Kidney', fact: 'Filters blood to produce urine, regulating electrolytes.', flow: '1.2 L/m (Both)' })}
-             >
-                <sphereGeometry args={[0.08]} />
-                <meshStandardMaterial color="#bf81ff" emissive="#bf81ff" emissiveIntensity={0.2} />
-             </mesh>
-          ))}
-        </group>
-      )}
-
-      {/* --- NERVOUS SYSTEM --- */}
-      {layers.nervous && (
-        <group>
-          {/* Brain */}
-          <mesh 
-             position={[0, torsoHeight + 1.05, 0]}
-             onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-             onClick={(e) => handleClick(e, { name: 'Cerebrum (Brain)', fact: 'The command center of the central nervous system.', flow: '750 ml/m' })}
-          >
-             <icosahedronGeometry args={[0.25, 3]} />
-             <meshStandardMaterial color="#bf81ff" emissive="#bf81ff" emissiveIntensity={0.5} wireframe />
-          </mesh>
-          
-          {/* Spinal Cord */}
-          <mesh 
-             position={[0, torsoHeight / 2 + 0.5, -0.1]}
-             onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}
-             onClick={(e) => handleClick(e, { name: 'Spinal Cord', fact: 'Carries motor and sensory signals between brain and body.', flow: 'CNS Component' })}
-          >
-             <cylinderGeometry args={[0.03, 0.03, torsoHeight + 0.4]} />
-             <meshStandardMaterial color="#bf81ff" emissive="#bf81ff" emissiveIntensity={0.8} />
-          </mesh>
-        </group>
-      )}
-    </group>
+    <primitive 
+      object={clonedScene} 
+      position={[0, -1.5, 0]} 
+      scale={1.5}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
+      onClick={handleClick}
+    />
   );
 };
 
@@ -246,15 +163,20 @@ const AnatomyVisualizer = () => {
           <pointLight position={[10, 10, 10]} intensity={1.5} color={selectedGender === 'male' ? "#43f3f6" : "#ff50fc"} />
           <pointLight position={[-10, -10, -10]} intensity={1.2} color="#bf81ff" />
           
-          <Suspense fallback={<Html center><div className="text-primary font-headline animate-pulse whitespace-nowrap">Rendering Biological Matrix...</div></Html>}>
-              <ProceduralHumanBody gender={selectedGender} layers={anatomyLayer} setSelectedOrgan={setSelectedOrgan} />
+          <Suspense fallback={<Html center><div className="text-primary font-headline animate-pulse whitespace-nowrap">Downloading External 3D Model...</div></Html>}>
+              <ModelErrorBoundary gender={selectedGender}>
+                  <GLTFHumanBody gender={selectedGender} layers={anatomyLayer} setSelectedOrgan={setSelectedOrgan} />
+              </ModelErrorBoundary>
               <ContactShadows position={[0, -3.8, 0]} opacity={0.6} scale={10} blur={2.5} far={4} color="#000000" />
               <Environment preset="city" />
           </Suspense>
 
+          {/* Camera Smooth Damping Setup */}
           <OrbitControls 
             enableZoom={true} 
-            enablePan={false} 
+            enablePan={false}
+            enableDamping={true}
+            dampingFactor={0.05}
             maxPolarAngle={Math.PI / 1.5}
             minPolarAngle={Math.PI / 4}
             autoRotate={!selectedOrgan} 
@@ -267,16 +189,16 @@ const AnatomyVisualizer = () => {
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto z-30">
         <GlassPanel className="p-1 rounded-full flex items-center gap-1 shadow-2xl">
             <button 
-                onClick={() => setSelectedGender('female')}
+                onClick={() => setSelectedOrgan(null) || setSelectedGender('female')}
                 className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${selectedGender === 'female' ? 'bg-primary text-on-primary shadow-[0_0_15px_rgba(67,243,246,0.3)]' : 'text-on-surface-variant hover:text-white'}`}
             >
-                Female Type
+                Female Model
             </button>
             <button 
-                onClick={() => setSelectedGender('male')}
+                onClick={() => setSelectedOrgan(null) || setSelectedGender('male')}
                 className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${selectedGender === 'male' ? 'bg-primary text-on-primary shadow-[0_0_15px_rgba(67,243,246,0.3)]' : 'text-on-surface-variant hover:text-white'}`}
             >
-                Male Type
+                Male Model
             </button>
         </GlassPanel>
       </div>
@@ -285,7 +207,7 @@ const AnatomyVisualizer = () => {
       <div className="absolute left-8 top-1/2 -translate-y-1/2 w-72 glass-panel ghost-border rounded-2xl p-6 shadow-2xl flex flex-col gap-6 z-30 pointer-events-auto hidden md:flex">
         <div>
           <h2 className="font-headline text-lg font-bold text-on-surface mb-1">Anatomy Layers</h2>
-          <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Neural Interface v4.0</p>
+          <p className="text-xs text-on-surface-variant font-medium uppercase tracking-widest">GLTF Submeshes Active</p>
         </div>
         
         <div className="space-y-4">
@@ -348,7 +270,7 @@ const AnatomyVisualizer = () => {
             </button>
             <div className="flex justify-between items-start mb-6 pt-2">
             <div>
-                <h4 className="text-xs font-bold text-primary tracking-widest uppercase mb-1">Detailed Scan</h4>
+                <h4 className="text-xs font-bold text-primary tracking-widest uppercase mb-1">Mesh Scan</h4>
                 <h1 className="font-headline text-3xl font-bold text-on-surface">{selectedOrgan.name}</h1>
             </div>
             </div>
@@ -395,10 +317,10 @@ const AnatomyVisualizer = () => {
 
       {/* Dynamic Hover Prompt */}
       {!selectedOrgan && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 px-6 py-2 glass-panel ghost-border rounded-full shadow-lg z-30 pointer-events-none">
-            <p className="text-xs font-medium text-on-surface-variant flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm animate-pulse text-primary">info</span>
-            Interact with biological elements to scan
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 px-6 py-2 glass-panel ghost-border rounded-full shadow-lg z-30 pointer-events-none text-center">
+            <p className="text-xs font-medium text-on-surface-variant flex items-center justify-center gap-2 mb-1">
+               <span className="material-symbols-outlined text-sm animate-pulse text-primary">touch_app</span>
+               Hover over organs to scan logic
             </p>
         </div>
       )}
@@ -407,3 +329,4 @@ const AnatomyVisualizer = () => {
 };
 
 export default AnatomyVisualizer;
+

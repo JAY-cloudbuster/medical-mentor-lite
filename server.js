@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -30,9 +31,11 @@ async function generateJSONResponse(prompt, fallbackMock) {
                     responseMimeType: "application/json",
                 }
             });
-            return JSON.parse(response.text);
+            let text = response.text || '';
+            text = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+            return JSON.parse(text);
         } catch (e) {
-            console.error("AI Error:", e);
+            console.error("AI Error:", e.message || e);
             return fallbackMock;
         }
     }
@@ -69,7 +72,7 @@ app.post('/api/related', async (req, res) => {
 
     const prompt = `Provide exactly 6 related medical terminology concepts for "${term}". Return JSON format: {"terms": ["Term 1", "Term 2", ...]}`;
     const fallback = {
-         terms: ["Vasodilation", "Cytokines", "Apoptosis", "Hemodynamics", "Endothelium", "Pharmacodynamics"]
+         terms: [`${term} Basics`, `${term} Pathology`, `${term} Interventions`, `${term} Pathway`, `${term} Diagnostics`, `${term} Case Study`]
     };
 
     const data = await generateJSONResponse(prompt, fallback);
@@ -134,19 +137,55 @@ app.post('/api/quiz', async (req, res) => {
 // 4. YouTube Engine
 app.get('/api/youtube', async (req, res) => {
     const { term } = req.query;
-    await new Promise(r => setTimeout(r, 600));
+    
+    try {
+        const response = await axios.get(`https://www.youtube.com/results?search_query=${encodeURIComponent(term + ' medical educational')}`);
+        const html = response.data;
+        const prefix = 'var ytInitialData = ';
+        const startIdx = html.indexOf(prefix);
+        if (startIdx !== -1) {
+            let endIdx = html.indexOf(';</script>', startIdx);
+            if (endIdx === -1) endIdx = html.indexOf('};</script>', startIdx) + 1;
+            
+            const jsonStr = html.substring(startIdx + prefix.length, endIdx);
+            const data = JSON.parse(jsonStr);
+            const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
+            
+            if (contents) {
+                const videos = [];
+                for (const item of contents) {
+                    if (item.videoRenderer) {
+                        const vid = item.videoRenderer;
+                        videos.push({
+                            id: vid.videoId,
+                            title: vid.title?.runs?.[0]?.text || 'Video',
+                            thumbnail: vid.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vid.videoId}/hqdefault.jpg`,
+                            duration: vid.lengthText?.simpleText || '10:00'
+                        });
+                        if (videos.length >= 2) break;
+                    }
+                }
+                if (videos.length > 0) {
+                    return res.json(videos);
+                }
+            }
+        }
+    } catch(e) {
+        console.error("Youtube scrape error:", e.message);
+    }
 
+    // Fallback if scraping fails for any reason
     res.json([
         {
-            id: '1',
+            id: 'dQw4w9WgXcQ',
             title: `Understanding ${term || 'Medical Pathology'} - 3D Animation`,
-            thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmD-4xgg7gFFkS3qy_imQ6iuq1jIG-7nHJ5jVM_t9uxLsiP7ncwf64MJTEGQKanLELwqM0T3ox2jPizKpel18TOh5KJm9qTb2n6gfaKwLfERLEhdwQVeg0kbAJSxKpBKvFJo8HX6hNqmmwJrLyao99VjyDoFhfjbtLYPgQuOG5DAX37jw_iC4s-aWc0EA30JUdBjPotTYEWeARZBB3ZeXYYCMyYIBahiqviNVSZc-RUNuf--vOEpfcZJ83sOMk3pEp36LqA8JfjmbR',
+            thumbnail: `https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg`,
             duration: '04:32'
         },
         {
-            id: '2',
+            id: '3JZ_D3ELwOQ',
             title: `Clinical Pearls: ${term || 'Diagnosis Updates'}`,
-            thumbnail: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAmKWIMyZOZhYftbRe7BlZcshLacPG8FSBGR0Segx3U9gkMpXzKFFaSzPXfc2n6_BxALS15HONQ3-ylnBVmkzk45EFXEEhoSybBWwpKyPV7QbcHanFlsCdCwe6xEfcT4wtCRx7hUsOAc7WlKxRT4PTn6qozFs3qUa47OMCeAfYAEe044I1j-lm5hkxmYJrCVLxi-TnmKskrw1R-j3MOcCY8B-62jb7EfhI-LFY-Ti2yu5F7RIsM1VeWRUV5x1DAg0nbbqBiObn4ARw3',
+            thumbnail: `https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg`,
             duration: '12:15'
         }
     ]);

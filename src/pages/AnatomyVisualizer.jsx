@@ -19,6 +19,62 @@ import useAppStore from '../store/useAppStore';
 // useGLTF.preload('/models/nervous.glb');
 // useGLTF.preload('/models/muscles.glb');
 
+// A smart fallback that renders basic geometry so the developer can TEST interaction logic right now!
+const FallbackMesh = ({ layerName, isVisible, setSelectedOrgan }) => {
+  if (!isVisible) return null;
+
+  // Render different primitive shapes based on the layer
+  const config = {
+    skeletal: { color: '#ffffff', position: [0, 0, 0], scale: [1, 3, 1], name: 'Demo Skeleton', fact: 'Skeletal framework base structure.' },
+    muscular: { color: '#ff50fc', position: [-1.5, 0, 0], scale: [0.8, 2.5, 0.8], name: 'Demo Bicep', fact: 'Muscular system demonstrator.' },
+    nervous:  { color: '#bf81ff', position: [1.5, 0, 0], scale: [0.5, 3.5, 0.5], name: 'Demo Spine Nerve', fact: 'Nervous system pathway.' },
+    organs:   { color: '#ff716c', position: [0, 1, 1], scale: [0.8, 0.8, 0.8], name: 'Demo Heart', fact: 'Central cardiovascular pump demonstrator.' }
+  };
+
+  const current = config[layerName] || config.organs;
+
+  return (
+    <mesh 
+       position={current.position} 
+       scale={current.scale}
+       onPointerOver={(e) => {
+         e.stopPropagation();
+         if (layerName === 'organs' || layerName === 'muscular') {
+             document.body.style.cursor = 'pointer';
+             if (!e.object.userData.originalEmissive) {
+                 e.object.userData.originalEmissive = e.object.material.emissive.clone();
+             }
+             e.object.material.emissive.set('#00DBDE');
+             e.object.material.emissiveIntensity = 0.5;
+         }
+       }}
+       onPointerOut={(e) => {
+         e.stopPropagation();
+         if (layerName === 'organs' || layerName === 'muscular') {
+             document.body.style.cursor = 'auto';
+             if (e.object.userData.originalEmissive) {
+                 e.object.material.emissive.copy(e.object.userData.originalEmissive);
+                 e.object.material.emissiveIntensity = 0;
+             }
+         }
+       }}
+       onClick={(e) => {
+         e.stopPropagation();
+         if (layerName === 'organs' || layerName === 'muscular') {
+             setSelectedOrgan({
+                name: current.name,
+                fact: current.fact,
+                flow: 'Demo Flow'
+             });
+         }
+       }}
+    >
+      {layerName === 'organs' ? <sphereGeometry args={[1, 32, 32]} /> : <cylinderGeometry args={[0.5, 0.5, 2, 32]} />}
+      <meshStandardMaterial color={current.color} roughness={0.3} metalness={0.1} />
+    </mesh>
+  );
+};
+
 class ModelErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -29,7 +85,13 @@ class ModelErrorBoundary extends React.Component {
   }
   render() {
     if (this.state.hasError) {
-      return null; // Suppressing the error UI until you have the models
+      return (
+        <FallbackMesh 
+           layerName={this.props.layerName} 
+           isVisible={this.props.isVisible} 
+           setSelectedOrgan={this.props.setSelectedOrgan} 
+        />
+      );
     }
     return this.props.children;
   }
@@ -130,19 +192,19 @@ const AnatomyVisualizer = () => {
           
           <Suspense fallback={<Html center><div className="text-primary font-headline animate-pulse whitespace-nowrap">Loading Medical Assets...</div></Html>}>
              {/* 🔥 HUMAN MODEL SYSTEM: Load multiple separate models based on State Control */}
-              <ModelErrorBoundary modelPath="/models/skeleton.glb">
+              <ModelErrorBoundary modelPath="/models/skeleton.glb" layerName="skeletal" isVisible={anatomyLayer.skeletal} setSelectedOrgan={setSelectedOrgan}>
                   <AnatomicalLayer modelPath="/models/skeleton.glb" layerName="skeletal" isVisible={anatomyLayer.skeletal} setSelectedOrgan={setSelectedOrgan} />
               </ModelErrorBoundary>
               
-              <ModelErrorBoundary modelPath="/models/muscles.glb">
+              <ModelErrorBoundary modelPath="/models/muscles.glb" layerName="muscular" isVisible={anatomyLayer.muscular} setSelectedOrgan={setSelectedOrgan}>
                   <AnatomicalLayer modelPath="/models/muscles.glb" layerName="muscular" isVisible={anatomyLayer.muscular} setSelectedOrgan={setSelectedOrgan} />
               </ModelErrorBoundary>
               
-              <ModelErrorBoundary modelPath="/models/nervous.glb">
+              <ModelErrorBoundary modelPath="/models/nervous.glb" layerName="nervous" isVisible={anatomyLayer.nervous} setSelectedOrgan={setSelectedOrgan}>
                   <AnatomicalLayer modelPath="/models/nervous.glb" layerName="nervous" isVisible={anatomyLayer.nervous} setSelectedOrgan={setSelectedOrgan} />
               </ModelErrorBoundary>
               
-              <ModelErrorBoundary modelPath="/models/organs.glb">
+              <ModelErrorBoundary modelPath="/models/organs.glb" layerName="organs" isVisible={anatomyLayer.organs} setSelectedOrgan={setSelectedOrgan}>
                   <AnatomicalLayer modelPath="/models/organs.glb" layerName="organs" isVisible={anatomyLayer.organs} setSelectedOrgan={setSelectedOrgan} />
               </ModelErrorBoundary>
 

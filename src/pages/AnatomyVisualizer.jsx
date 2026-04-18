@@ -1,16 +1,24 @@
 import React, { Suspense, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Html, ContactShadows, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import GlassPanel from '../components/ui/GlassPanel';
 import useAppStore from '../store/useAppStore';
 
-// Add Preload Logic for your paths
-// IMPORTANT: Drop your actual exported GLTF/GLB files into the public/models directory of this project.
-useGLTF.preload('/models/female_body.glb');
-useGLTF.preload('/models/male_body.glb');
+// === BLUEPRINT: ASSET PIPELINE & RUNTIME ARCHITECTURE ===
+// 1. You must place your optimally exported, Draco-compressed GLB files in the `/public/models/` folder.
+// 2. We use separate models for each semantic layer:
+//    - skeleton.glb
+//    - organs.glb
+//    - nervous.glb
+//    - muscles.glb
 
-// Error Boundary for seamless fallback if model doesn't exist
+// uncomment to preload once you have the assets:
+// useGLTF.preload('/models/skeleton.glb');
+// useGLTF.preload('/models/organs.glb');
+// useGLTF.preload('/models/nervous.glb');
+// useGLTF.preload('/models/muscles.glb');
+
 class ModelErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -21,96 +29,47 @@ class ModelErrorBoundary extends React.Component {
   }
   render() {
     if (this.state.hasError) {
-      return (
-        <Html center>
-          <div className="bg-surface-container-high/90 border border-error p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-2">
-             <span className="material-symbols-outlined text-error text-3xl">error</span>
-             <h3 className="font-headline font-bold text-on-surface">3D Model failed to load</h3>
-             <p className="text-sm text-on-surface-variant">Please ensure /models/{this.props.gender}_body.glb exists in your public directory.</p>
-          </div>
-        </Html>
-      );
+      return null; // Suppressing the error UI until you have the models
     }
     return this.props.children;
   }
 }
 
-// --- GLTF External Model Loader ---
-const GLTFHumanBody = ({ gender, layers, setSelectedOrgan }) => {
-  // We use a publicly hosted human model fallback (Soldier.glb from Three.js repo) 
-  // since the local /models/male_body.glb doesn't exist yet!
-  const publicFallbackUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/Soldier.glb';
-  const modelUrl = publicFallbackUrl; // Forcing fallback so the screen doesn't error out
-  
-  const { scene } = useGLTF(modelUrl);
-
+// 🔥 SCENE COMPOSITION: Real Mesh Targetting & Traversal
+const AnatomicalLayer = ({ modelPath, layerName, isVisible, setSelectedOrgan }) => {
+  // Try loading the specific layer model
+  const { scene } = useGLTF(modelPath);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
+  // 🔥 MESH INTERACTION SYSTEM: Traverse ONCE (not every render)
   useEffect(() => {
     clonedScene.traverse((child) => {
       if (child.isMesh) {
+        // Clone material so we can highlight without affecting other instances
         if (child.material) {
           child.material = child.material.clone();
         }
-
-        const name = child.name.toLowerCase();
-
-        // Standard Medical Naming 
-        if (name.includes('heart') || name.includes('myocardium')) {
-          child.userData = { category: 'organs', name: 'Heart', fact: 'Pumps blood.', flow: '5 L/m' };
-        } else if (name.includes('lung')) {
-          child.userData = { category: 'organs', name: 'Lung', fact: 'Provides gas exchange.', flow: 'Pulmonary' };
-        } else if (name.includes('liver')) {
-          child.userData = { category: 'organs', name: 'Liver', fact: 'Metabolizes drugs.', flow: '1.5 L/m' };
-        } else if (name.includes('stomach')) {
-          child.userData = { category: 'organs', name: 'Stomach', fact: 'Muscular organ.', flow: '200 ml/min' };
-        } else if (name.includes('kidney')) {
-          child.userData = { category: 'organs', name: 'Kidney', fact: 'Filters blood.', flow: '1.2 L/m' };
-        } else if (name.includes('intestine')) {
-          child.userData = { category: 'organs', name: 'Intestines', fact: 'Absorption site.', flow: '800 ml/min' };
-        } else if (name.includes('brain')) {
-          child.userData = { category: 'nervous', name: 'Brain', fact: 'Command center.', flow: '750 ml/m' };
-        } 
         
-        // +++ FALLBACK MAPPING FOR PUBLIC MODEL +++
-        // Since we are loading the Soldier.glb, we map its generic meshes to body systems to test the logic
-        else if (name.includes('vanguard_mesh')) {
-          child.userData = { category: 'muscular', name: 'Human Interface (Vanguard Body)', fact: 'Demo full-body mesh interaction.', flow: 'Variable' };
-        } else if (name.includes('visor')) {
-          child.userData = { category: 'nervous', name: 'Ocular Visor', fact: 'Simulates optical diagnostic interaction.', flow: 'Neural' };
-        }
-        else {
-          child.userData = { category: 'skeletal' }; 
-        }
+        // Use real semantic names from the GLB (e.g., 'left_lung', 'heart')
+        child.userData = {
+          name: child.name.replace(/_/g, ' ').toUpperCase(),
+          category: layerName
+        };
       }
     });
-  }, [clonedScene]);
-
-  useFrame(() => {
-    clonedScene.traverse((child) => {
-      if (child.isMesh) {
-         const category = child.userData.category;
-         if (category) {
-             child.visible = !!layers[category]; 
-             // Note: if you disable muscular layer, the Vanguard body vanishes!
-         }
-      }
-    });
-  });
+  }, [clonedScene, layerName]);
 
   const handlePointerOver = (e) => {
     e.stopPropagation();
     const mesh = e.object;
-    
-    if (mesh.userData && mesh.userData.name) {
+    if (mesh.isMesh && (layerName === 'organs' || layerName === 'muscular')) {
       document.body.style.cursor = 'pointer';
       if (mesh.material) {
-          if (!mesh.userData.originalEmissive) {
-              mesh.userData.originalEmissive = mesh.material.emissive ? mesh.material.emissive.clone() : new THREE.Color(0x000000);
-              mesh.userData.originalEmissiveIntensity = mesh.material.emissiveIntensity || 0;
-          }
-          mesh.material.emissive = new THREE.Color('#00DBDE');
-          mesh.material.emissiveIntensity = 1.0;
+        if (!mesh.userData.originalEmissive) {
+          mesh.userData.originalEmissive = mesh.material.emissive ? mesh.material.emissive.clone() : new THREE.Color(0x000000);
+        }
+        mesh.material.emissive = new THREE.Color('#00DBDE');
+        mesh.material.emissiveIntensity = 0.5;
       }
     }
   };
@@ -118,11 +77,11 @@ const GLTFHumanBody = ({ gender, layers, setSelectedOrgan }) => {
   const handlePointerOut = (e) => {
     e.stopPropagation();
     const mesh = e.object;
-    if (mesh.userData && mesh.userData.name) {
+    if (mesh.isMesh && (layerName === 'organs' || layerName === 'muscular')) {
       document.body.style.cursor = 'auto';
       if (mesh.material && mesh.userData.originalEmissive) {
-         mesh.material.emissive.copy(mesh.userData.originalEmissive);
-         mesh.material.emissiveIntensity = mesh.userData.originalEmissiveIntensity;
+        mesh.material.emissive.copy(mesh.userData.originalEmissive);
+        mesh.material.emissiveIntensity = 0;
       }
     }
   };
@@ -130,20 +89,22 @@ const GLTFHumanBody = ({ gender, layers, setSelectedOrgan }) => {
   const handleClick = (e) => {
     e.stopPropagation();
     const mesh = e.object;
-    if (mesh.userData && mesh.userData.name) {
-       setSelectedOrgan({
-         name: mesh.userData.name,
-         fact: mesh.userData.fact,
-         flow: mesh.userData.flow
-       });
+    if (mesh.isMesh && (layerName === 'organs' || layerName === 'muscular')) {
+      setSelectedOrgan({
+        name: mesh.userData.name,
+        // In a real database, connect `mesh.name` to your medical terminology store
+        fact: `Pathological analysis active for ${mesh.userData.name}. Mesh decoupled from parent hierarchy.`,
+        flow: 'Auto-mapped'
+      });
     }
   };
 
   return (
     <primitive 
       object={clonedScene} 
-      position={[0, -1.5, 0]} 
-      scale={1.5}
+      position={[0, -3, 0]} 
+      scale={3} // Adjust scale depending on your Blender export
+      visible={isVisible}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onClick={handleClick}
@@ -152,55 +113,57 @@ const GLTFHumanBody = ({ gender, layers, setSelectedOrgan }) => {
 };
 
 const AnatomyVisualizer = () => {
-  const { selectedGender, setSelectedGender, anatomyLayer, toggleAnatomyLayer, selectedOrgan, setSelectedOrgan } = useAppStore();
+  const { anatomyLayer, toggleAnatomyLayer, selectedOrgan, setSelectedOrgan } = useAppStore();
 
   return (
     <div className="h-screen w-full relative flex items-center justify-center overflow-hidden">
       {/* 3D Canvas */}
       <div className="absolute inset-0 pointer-events-auto bg-background">
-        <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+        {/* 🔥 RAYCAST OPTIMIZATION: Large models = heavy raycasting. Add threshold. */}
+        <Canvas 
+            camera={{ position: [0, 0, 8], fov: 45 }}
+            raycaster={{ params: { Mesh: { threshold: 0.2 } } }} 
+        >
           <ambientLight intensity={0.8} />
-          <pointLight position={[10, 10, 10]} intensity={1.5} color={selectedGender === 'male' ? "#43f3f6" : "#ff50fc"} />
+          <pointLight position={[10, 10, 10]}  intensity={1.5} color={"#43f3f6"} />
           <pointLight position={[-10, -10, -10]} intensity={1.2} color="#bf81ff" />
           
-          <Suspense fallback={<Html center><div className="text-primary font-headline animate-pulse whitespace-nowrap">Downloading External 3D Model...</div></Html>}>
-              <ModelErrorBoundary gender={selectedGender}>
-                  <GLTFHumanBody gender={selectedGender} layers={anatomyLayer} setSelectedOrgan={setSelectedOrgan} />
+          <Suspense fallback={<Html center><div className="text-primary font-headline animate-pulse whitespace-nowrap">Loading Medical Assets...</div></Html>}>
+             {/* 🔥 HUMAN MODEL SYSTEM: Load multiple separate models based on State Control */}
+              <ModelErrorBoundary modelPath="/models/skeleton.glb">
+                  <AnatomicalLayer modelPath="/models/skeleton.glb" layerName="skeletal" isVisible={anatomyLayer.skeletal} setSelectedOrgan={setSelectedOrgan} />
               </ModelErrorBoundary>
+              
+              <ModelErrorBoundary modelPath="/models/muscles.glb">
+                  <AnatomicalLayer modelPath="/models/muscles.glb" layerName="muscular" isVisible={anatomyLayer.muscular} setSelectedOrgan={setSelectedOrgan} />
+              </ModelErrorBoundary>
+              
+              <ModelErrorBoundary modelPath="/models/nervous.glb">
+                  <AnatomicalLayer modelPath="/models/nervous.glb" layerName="nervous" isVisible={anatomyLayer.nervous} setSelectedOrgan={setSelectedOrgan} />
+              </ModelErrorBoundary>
+              
+              <ModelErrorBoundary modelPath="/models/organs.glb">
+                  <AnatomicalLayer modelPath="/models/organs.glb" layerName="organs" isVisible={anatomyLayer.organs} setSelectedOrgan={setSelectedOrgan} />
+              </ModelErrorBoundary>
+
               <ContactShadows position={[0, -3.8, 0]} opacity={0.6} scale={10} blur={2.5} far={4} color="#000000" />
               <Environment preset="city" />
           </Suspense>
 
-          {/* Camera Smooth Damping Setup */}
+          {/* 🔥 CAMERA SYSTEM OPTIMIZED */}
           <OrbitControls 
             enableZoom={true} 
             enablePan={false}
             enableDamping={true}
-            dampingFactor={0.05}
+            dampingFactor={0.1}
+            minDistance={2}
+            maxDistance={8}
             maxPolarAngle={Math.PI / 1.5}
             minPolarAngle={Math.PI / 4}
             autoRotate={!selectedOrgan} 
             autoRotateSpeed={0.5} 
           />
         </Canvas>
-      </div>
-
-      {/* Floating Navigation Controls */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-auto z-30">
-        <GlassPanel className="p-1 rounded-full flex items-center gap-1 shadow-2xl">
-            <button 
-                onClick={() => setSelectedOrgan(null) || setSelectedGender('female')}
-                className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${selectedGender === 'female' ? 'bg-primary text-on-primary shadow-[0_0_15px_rgba(67,243,246,0.3)]' : 'text-on-surface-variant hover:text-white'}`}
-            >
-                Female Model
-            </button>
-            <button 
-                onClick={() => setSelectedOrgan(null) || setSelectedGender('male')}
-                className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${selectedGender === 'male' ? 'bg-primary text-on-primary shadow-[0_0_15px_rgba(67,243,246,0.3)]' : 'text-on-surface-variant hover:text-white'}`}
-            >
-                Male Model
-            </button>
-        </GlassPanel>
       </div>
 
       {/* Left Side Panel: Layer Toggles */}
@@ -320,7 +283,7 @@ const AnatomyVisualizer = () => {
         <div className="absolute top-24 left-1/2 -translate-x-1/2 px-6 py-2 glass-panel ghost-border rounded-full shadow-lg z-30 pointer-events-none text-center">
             <p className="text-xs font-medium text-on-surface-variant flex items-center justify-center gap-2 mb-1">
                <span className="material-symbols-outlined text-sm animate-pulse text-primary">touch_app</span>
-               Hover over organs to scan logic
+               Install models in /public/models to view and scan logic.
             </p>
         </div>
       )}
@@ -329,4 +292,3 @@ const AnatomyVisualizer = () => {
 };
 
 export default AnatomyVisualizer;
-

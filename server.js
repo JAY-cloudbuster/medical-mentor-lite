@@ -191,6 +191,68 @@ app.get('/api/youtube', async (req, res) => {
     ]);
 });
 
+// 5. Knowledge Graph Engine
+app.post('/api/graph', async (req, res) => {
+    const { term } = req.body;
+    if (!term) return res.status(400).json({ error: "Term required" });
+    
+    if (!ai) await new Promise(r => setTimeout(r, 1500));
+
+    const prompt = `Generate a structured medical knowledge graph for ${term}.
+Return ONLY JSON in this format:
+{
+  "nodes": [
+    { "id": "string", "label": "string", "type": "disease" | "symptom" | "drug" | "concept" }
+  ],
+  "edges": [
+    { "source": "string", "target": "string", "relation": "string" }
+  ]
+}
+
+Constraints:
+* Maximum 15 nodes
+* Avoid duplicates
+* Ensure medical accuracy
+* Central node must be the searched term`;
+
+    const fallback = {
+        nodes: [
+            { id: "1", label: term, type: "concept" },
+            { id: "2", label: "Related Symptom", type: "symptom" },
+            { id: "3", label: "Common Drug", type: "drug" },
+            { id: "4", label: "Underlying Disease", type: "disease" }
+        ],
+        edges: [
+            { source: "1", target: "2", relation: "causes" },
+            { source: "1", target: "4", relation: "associated with" },
+            { source: "3", target: "1", relation: "treats" }
+        ]
+    };
+
+    const data = await generateJSONResponse(prompt, fallback);
+    
+    // Safety check for nodes and edges
+    if (!data.nodes) data.nodes = fallback.nodes;
+    if (!data.edges) data.edges = fallback.edges;
+
+    res.json(data);
+});
+
+app.post('/api/explain', async (req, res) => {
+    const { term } = req.body;
+    if (!term) return res.status(400).json({ error: "Term required" });
+    
+    if (!ai) await new Promise(r => setTimeout(r, 500));
+
+    const prompt = `Provide a very short (2 sentence) medical explanation for the term "${term}". Return JSON format: {"explanation": "..."}`;
+    const fallback = {
+        explanation: `${term} is an important medical concept. It is closely related to pathophysiological processes requiring clinical attention.`
+    };
+
+    const data = await generateJSONResponse(prompt, fallback);
+    res.json(data);
+});
+
 app.listen(port, () => {
   console.log(`Neural Medix API listening on port ${port}`);
 });

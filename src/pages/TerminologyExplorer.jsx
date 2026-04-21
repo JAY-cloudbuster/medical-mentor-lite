@@ -4,8 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import GlassPanel from '../components/ui/GlassPanel';
 import { defineTerm, getRelatedTerms, getYoutubeVideos } from '../services/apiService';
 import useAppStore from '../store/useAppStore';
+import { useNavigate } from 'react-router-dom';
 
 const TerminologyExplorer = () => {
+  const navigate = useNavigate();
   const { 
     searchTerm, setSearchTerm, 
     correctedTerm, setCorrectedTerm, 
@@ -165,6 +167,12 @@ const TerminologyExplorer = () => {
                           <span className="material-symbols-outlined text-sm">bookmark</span> Save to Library
                         </button>
                       </div>
+                      <button 
+                        onClick={() => navigate(`/graph/${searchTerm}`)}
+                        className="bg-primary/20 text-primary border border-primary px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/40 transition-all shadow-[0_0_15px_rgba(67,243,246,0.3)]">
+                        <span className="material-symbols-outlined text-sm">hub</span>
+                        View Knowledge Graph
+                      </button>
                     </div>
                   </div>
                 </motion.div>

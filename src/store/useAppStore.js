@@ -36,6 +36,14 @@ const useAppStore = create((set) => ({
   toggleAnatomyLayer: (layer) => set((state) => ({ anatomyLayer: { ...state.anatomyLayer, [layer]: !state.anatomyLayer[layer] } })),
   selectedOrgan: null,
   setSelectedOrgan: (organ) => set({ selectedOrgan: organ }),
+
+  // Knowledge Graph State
+  graphData: null,
+  setGraphData: (data) => set({ graphData: data }),
+  selectedNode: null,
+  setSelectedNode: (node) => set({ selectedNode: node }),
+  loadingGraph: false,
+  setLoadingGraph: (status) => set({ loadingGraph: status }),
 }));
 
 export default useAppStore;

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import TerminologyExplorer from './pages/TerminologyExplorer';
 import QuizEngine from './pages/QuizEngine';
 import AnatomyVisualizer from './pages/AnatomyVisualizer';
+import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/terminology" element={<TerminologyExplorer />} />
             <Route path="/quiz" element={<QuizEngine />} />
             <Route path="/anatomy" element={<AnatomyVisualizer />} />
+            <Route path="/graph/:term" element={<KnowledgeGraphPage />} />
           </Route>
         </Routes>
       </Router>

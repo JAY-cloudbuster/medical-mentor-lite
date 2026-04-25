@@ -25,7 +25,7 @@ async function generateJSONResponse(prompt, fallbackMock) {
     if (ai) {
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.5-pro',
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -81,11 +81,16 @@ app.post('/api/related', async (req, res) => {
 
 // 3. Quiz Engine
 app.post('/api/quiz', async (req, res) => {
-    const { topic } = req.body;
+    const { topic, difficulty, numQuestions } = req.body;
+    const questionsCount = numQuestions || 5;
+    const diffLevel = difficulty || 'Medium';
     
     if (!ai) await new Promise(r => setTimeout(r, 1500));
 
-    const prompt = `Generate a 5-question medical quiz on the topic "${topic}".
+    const prompt = `Generate exactly ${questionsCount} UNIQUE, DISTINCT, and DIVERSE medical quiz questions on the topic "${topic}" with a difficulty level of "${diffLevel}". Ensure no two questions are the same or cover the exact same concept.
+    
+    CRITICAL INSTRUCTION: You MUST generate EXACTLY ${questionsCount} questions in the array. Do not stop early. Do not generate more or fewer than ${questionsCount}.
+
     Return JSON format exactly like:
     {
       "questions": [
@@ -103,32 +108,19 @@ app.post('/api/quiz', async (req, res) => {
       ]
     }`;
 
-    const fallback = {
-        questions: [
-            {
-                question: `A patient presents with symptoms commonly associated with ${topic || 'general pathology'}. Which of the following is the most definitive diagnostic marker?`,
-                options: [
-                  { id: 'A', label: 'Elevated AST/ALT ratio' },
-                  { id: 'B', label: 'Positive specific antibody titer' },
-                  { id: 'C', label: 'Decreased serum albumin' },
-                  { id: 'D', label: 'Leukocytosis with left shift' }
-                ],
-                correctOption: 'B',
-                explanation: `Specific antibody titers remain the gold standard for confirming this pathway.`
-            },
-            {
-                question: `What is the primary mechanism of action for the first-line pharmacological treatment of ${topic}?`,
-                options: [
-                  { id: 'A', label: 'Inhibition of cell wall synthesis' },
-                  { id: 'B', label: 'Blockade of beta-adrenergic receptors' },
-                  { id: 'C', label: 'Competitive antagonism of GPCR' },
-                  { id: 'D', label: 'Allosteric modulation of GABA-A' }
-                ],
-                correctOption: 'C',
-                explanation: `GPCR antagonism directly interrupts the signal cascade driving the pathology.`
-            }
-        ]
-    };
+    const fallbackQuestions = Array(questionsCount).fill(null).map((_, i) => ({
+       question: `[Q${i+1} - ${diffLevel}] A patient presents with symptoms associated with ${topic || 'general pathology'}. What is the primary consideration for presentation ${i+1}?`,
+       options: [
+         { id: 'A', label: `Elevated AST/ALT ratio for variant ${i+1}` },
+         { id: 'B', label: `Positive specific antibody titer for variant ${i+1}` },
+         { id: 'C', label: `Decreased serum albumin for variant ${i+1}` },
+         { id: 'D', label: `Leukocytosis with left shift for variant ${i+1}` }
+       ],
+       correctOption: ['A', 'B', 'C', 'D'][i % 4],
+       explanation: `Explanation for question ${i+1}: This option was chosen because it represents the standard protocol for this specific presentation variant.`
+    }));
+
+    const fallback = { questions: fallbackQuestions };
 
     const data = await generateJSONResponse(prompt, fallback);
     res.json(data);

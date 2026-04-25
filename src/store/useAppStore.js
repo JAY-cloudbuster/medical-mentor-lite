@@ -16,6 +16,15 @@ const useAppStore = create((set) => ({
   youtubeVideos: [],
   setYoutubeVideos: (videos) => set({ youtubeVideos: videos }),
   
+  // Quiz Configurator State
+  quizConfig: {
+    topic: 'Pathology',
+    difficulty: 'Medium',
+    timeLimit: 10,
+    numQuestions: 6,
+  },
+  setQuizConfig: (config) => set((state) => ({ quizConfig: { ...state.quizConfig, ...config } })),
+
   // Quiz Engine State
   quizData: null,
   setQuizData: (data) => set({ quizData: data }),

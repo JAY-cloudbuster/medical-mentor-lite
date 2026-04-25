@@ -11,13 +11,10 @@ const KnowledgeGraphPage = () => {
   const navigate = useNavigate();
   const { setGraphData, selectedNode, setSelectedNode, loadingGraph, setLoadingGraph } = useAppStore();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ['graph', term],
     queryFn: async () => {
-      setLoadingGraph(true);
-      const res = await fetchGraph(term);
-      setLoadingGraph(false);
-      return res;
+      return await fetchGraph(term);
     },
     enabled: !!term
   });
@@ -49,9 +46,9 @@ const KnowledgeGraphPage = () => {
   return (
     <div className="h-screen w-full relative flex overflow-hidden bg-background font-body text-on-surface">
       {/* 3D Canvas Area */}
-      <div className="flex-1 w-full h-full relative cursor-crosshair">
-        {isLoading || loadingGraph ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
+      <div className="absolute inset-0 cursor-crosshair z-0 container-for-canvas">
+        {isLoading || isFetching ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 w-full h-full bg-background/80 backdrop-blur-sm">
                 <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(67,243,246,0.6)]"></div>
                 <h2 className="font-headline text-xl text-on-surface animate-pulse">Synthesizing Neural Graph...</h2>
                 <p className="text-sm text-on-surface-variant font-mono mt-2">Connecting medical topologies for '{term}'</p>

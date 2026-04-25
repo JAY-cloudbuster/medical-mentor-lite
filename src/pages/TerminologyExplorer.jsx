@@ -168,7 +168,7 @@ const TerminologyExplorer = () => {
                         </button>
                       </div>
                       <button 
-                        onClick={() => navigate(`/graph/${searchTerm}`)}
+                        onClick={() => navigate(`/graph/${encodeURIComponent(debouncedTerm)}`)}
                         className="bg-primary/20 text-primary border border-primary px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/40 transition-all shadow-[0_0_15px_rgba(67,243,246,0.3)]">
                         <span className="material-symbols-outlined text-sm">hub</span>
                         View Knowledge Graph

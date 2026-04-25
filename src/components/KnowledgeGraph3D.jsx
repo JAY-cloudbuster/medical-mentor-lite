@@ -91,7 +91,7 @@ const NodeMesh = React.memo(({ node, position, isCentral, onSelect }) => {
 });
 
 const Edge = React.memo(({ start, end }) => {
-  const points = [start, end];
+  const points = [[start.x, start.y, start.z], [end.x, end.y, end.z]];
   return (
     <Line 
         points={points} 

@@ -12,8 +12,8 @@ export const getRelatedTerms = async (term) => {
   return response.data;
 };
 
-export const getQuiz = async (topic) => {
-  const response = await axios.post(`${API_URL}/quiz`, { topic });
+export const getQuiz = async (topic, difficulty, numQuestions) => {
+  const response = await axios.post(`${API_URL}/quiz`, { topic, difficulty, numQuestions });
   return response.data;
 };
 

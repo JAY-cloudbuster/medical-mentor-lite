@@ -6,14 +6,36 @@ import { getQuiz } from '../services/apiService';
 import useAppStore from '../store/useAppStore';
 
 const QuizEngine = () => {
-  const { moduleActive, quizProgress, updateQuizProgress, resetQuizState, selectedAnswer, setSelectedAnswer } = useAppStore();
+  const { quizConfig, quizProgress, updateQuizProgress, resetQuizState, selectedAnswer, setSelectedAnswer } = useAppStore();
   const [showSummary, setShowSummary] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(quizConfig.timeLimit * 60);
 
   const { data: quizPayload, isLoading, isError, refetch } = useQuery({
-    queryKey: ['quiz', moduleActive],
-    queryFn: () => getQuiz(moduleActive),
+    queryKey: ['quiz', quizConfig.topic, quizConfig.difficulty, quizConfig.numQuestions],
+    queryFn: () => getQuiz(quizConfig.topic, quizConfig.difficulty, quizConfig.numQuestions),
     enabled: true,
   });
+
+  useEffect(() => {
+     if (timeLeft <= 0 || quizProgress.isComplete || isLoading || showSummary) return;
+     const timerId = setInterval(() => {
+         setTimeLeft(prev => prev - 1);
+     }, 1000);
+     return () => clearInterval(timerId);
+  }, [timeLeft, quizProgress.isComplete, isLoading, showSummary]);
+
+  useEffect(() => {
+      if (timeLeft === 0 && !quizProgress.isComplete) {
+          updateQuizProgress({ isComplete: true });
+          setShowSummary(true);
+      }
+  }, [timeLeft]);
+
+  const formatTime = (seconds) => {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   // Effect to reset on mount if unmounted previously
   useEffect(() => {
@@ -47,6 +69,7 @@ const QuizEngine = () => {
 
   const handleRestart = () => {
       resetQuizState();
+      setTimeLeft(quizConfig.timeLimit * 60);
       setShowSummary(false);
       refetch();
   };
@@ -113,12 +136,12 @@ const QuizEngine = () => {
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-end px-2">
             <div className="flex flex-col">
-              <span className="text-tertiary text-xs font-bold tracking-widest uppercase mb-1">Module: {moduleActive}</span>
+              <span className="text-tertiary text-xs font-bold tracking-widest uppercase mb-1">{quizConfig.topic} &bull; {quizConfig.difficulty}</span>
               <h2 className="font-headline text-3xl font-bold text-on-surface">Question {currentQuestionIdx + 1} <span className="text-on-surface-variant font-light text-xl">/ {totalQuestions}</span></h2>
             </div>
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-secondary">timer</span>
-              <span className="font-headline text-2xl font-bold tabular-nums">LIVE</span>
+              <span className={`font-headline text-2xl font-bold tabular-nums ${timeLeft < 60 ? 'text-error animate-pulse' : 'text-on-surface'}`}>{formatTime(timeLeft)}</span>
             </div>
           </div>
           <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden relative">

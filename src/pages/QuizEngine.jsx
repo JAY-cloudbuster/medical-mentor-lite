@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import GlassPanel from '../components/ui/GlassPanel';
 import { getQuiz } from '../services/apiService';
 import useAppStore from '../store/useAppStore';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const QuizEngine = () => {
   const { quizConfig, quizProgress, updateQuizProgress, resetQuizState, selectedAnswer, setSelectedAnswer } = useAppStore();
@@ -76,9 +77,8 @@ const QuizEngine = () => {
 
   if (isLoading) {
       return (
-          <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-              <span className="animate-spin text-primary material-symbols-outlined text-4xl">autorenew</span>
-              <p className="text-primary font-headline tracking-widest uppercase text-sm font-bold animate-pulse">Compiling Neural Nodes...</p>
+          <div className="min-h-[80vh] flex flex-col items-center justify-center">
+              <LoadingSpinner size="lg" color="secondary" message="Compiling Neural Exam Nodes..." />
           </div>
       );
   }

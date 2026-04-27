@@ -5,6 +5,8 @@ import GlassPanel from '../components/ui/GlassPanel';
 import KnowledgeGraph3D from '../components/KnowledgeGraph3D';
 import { fetchGraph, fetchNodeInfo } from '../services/graphService';
 import useAppStore from '../store/useAppStore';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { capitalizeWords } from '../utils/textUtils';
 
 const KnowledgeGraphPage = () => {
   const { term } = useParams();
@@ -49,9 +51,8 @@ const KnowledgeGraphPage = () => {
       <div className="absolute inset-0 cursor-crosshair z-0 container-for-canvas">
         {isLoading || isFetching ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 w-full h-full bg-background/80 backdrop-blur-sm">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(67,243,246,0.6)]"></div>
-                <h2 className="font-headline text-xl text-on-surface animate-pulse">Synthesizing Neural Graph...</h2>
-                <p className="text-sm text-on-surface-variant font-mono mt-2">Connecting medical topologies for '{term}'</p>
+                <LoadingSpinner size="md" color="primary" message="Synthesizing Neural Graph..." />
+                <p className="text-sm text-on-surface-variant font-mono mt-2">Connecting medical topologies for '{capitalizeWords(term)}'</p>
             </div>
         ) : isError ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center font-headline text-error">

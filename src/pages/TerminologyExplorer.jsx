@@ -5,6 +5,9 @@ import GlassPanel from '../components/ui/GlassPanel';
 import { defineTerm, getRelatedTerms, getYoutubeVideos } from '../services/apiService';
 import useAppStore from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
+import { capitalizeWords, truncateText } from '../utils/textUtils';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const TerminologyExplorer = () => {
   const navigate = useNavigate();
@@ -16,15 +19,7 @@ const TerminologyExplorer = () => {
     youtubeVideos, setYoutubeVideos
   } = useAppStore();
 
-  const [debouncedTerm, setDebouncedTerm] = useState(searchTerm || 'Atrial Fibrillation');
-  
-  // Custom debouncer
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (searchTerm.trim() !== '') setDebouncedTerm(searchTerm);
-    }, 600);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
+  const debouncedTerm = useDebounce(searchTerm || 'Atrial Fibrillation', 600);
 
   const { data: defData, isLoading: isLoadingDef, isError: isErrorDef } = useQuery({
     queryKey: ['definition', debouncedTerm],
@@ -127,7 +122,7 @@ const TerminologyExplorer = () => {
              ) : definitionData ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <span className="text-primary font-headline text-sm tracking-[0.2em] uppercase font-bold mb-4 block">Core Pathology Term</span>
-                  <h1 className="text-6xl font-headline font-bold text-on-surface glowing-underline mb-12 tracking-tight capitalize">{debouncedTerm}</h1>
+                  <h1 className="text-6xl font-headline font-bold text-on-surface glowing-underline mb-12 tracking-tight">{capitalizeWords(debouncedTerm)}</h1>
                   
                   <div className="space-y-10">
                     <section>
@@ -196,7 +191,7 @@ const TerminologyExplorer = () => {
                               <div className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 text-[10px] rounded text-white font-bold">{vid.duration}</div>
                            </div>
                            <div className="flex-1 flex flex-col justify-center">
-                              <p className="text-sm font-bold text-on-surface line-clamp-2 leading-tight group-hover:text-primary transition-colors">{vid.title}</p>
+                              <p className="text-sm font-bold text-on-surface leading-tight group-hover:text-primary transition-colors">{truncateText(vid.title, 50)}</p>
                               <p className="text-xs text-outline mt-1 font-bold">Watch Video</p>
                            </div>
                       </div>

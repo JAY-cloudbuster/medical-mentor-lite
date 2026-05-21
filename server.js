@@ -3,14 +3,42 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import axios from 'axios';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import { validateTermInput, validateQuizInput } from './serverValidators.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Express security settings
+app.use(helmet());
+app.disable('x-powered-by');
+
+// Global CORS configuration
 app.use(cors());
 app.use(express.json());
+
+// Global API rate limiter to protect against denial of service
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests from this IP, please try again after 15 minutes" }
+});
+
+// Strict rate limiter for AI-backed endpoints to protect api key quota
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // limit each IP to 30 requests per window for AI calls
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "AI generation quota exceeded for this IP, please try again after 15 minutes" }
+});
+
+app.use('/api', apiLimiter);
 
 // Set up Gemini conditionally
 let ai = null;
@@ -43,154 +71,167 @@ async function generateJSONResponse(prompt, fallbackMock) {
 }
 
 // 1. Definition Engine
-app.post('/api/define', async (req, res) => {
-    const { term } = req.body;
-    if (!term) return res.status(400).json({ error: "Term required" });
+app.post('/api/define', aiLimiter, validateTermInput, async (req, res, next) => {
+    try {
+        const term = req.sanitizedTerm;
 
-    // Ensure realistic delay for loading states
-    if (!ai) await new Promise(r => setTimeout(r, 1200));
+        // Ensure realistic delay for loading states
+        if (!ai) await new Promise(r => setTimeout(r, 1200));
 
-    const prompt = `You are a medical knowledge engine. Provide a detailed JSON response for the medical term "${term}". 
-    Format MUST be: {"definition": "...", "pathophysiology": "...", "clinicalRelevance": "...", "correctedTerm": "the correctly spelled term"}`;
+        const prompt = `You are a medical knowledge engine. Provide a detailed JSON response for the medical term "${term}". 
+        Format MUST be: {"definition": "...", "pathophysiology": "...", "clinicalRelevance": "...", "correctedTerm": "the correctly spelled term"}`;
 
-    const fallback = {
-        definition: `${term} is typically defined as a significant physiological adaptation or anomaly requiring medical observation. It acts as a primary stressor in cellular environments.`,
-        pathophysiology: `The mechanisms underlying ${term.toLowerCase()} predominantly involve cascading enzyme failures or misfolded protein aggregations within the target organ system.`,
-        clinicalRelevance: `Immediate clinical intervention relies on assessing biomarkers and ensuring hemodynamics remain stable.`,
-        correctedTerm: term
-    };
+        const fallback = {
+            definition: `${term} is typically defined as a significant physiological adaptation or anomaly requiring medical observation. It acts as a primary stressor in cellular environments.`,
+            pathophysiology: `The mechanisms underlying ${term.toLowerCase()} predominantly involve cascading enzyme failures or misfolded protein aggregations within the target organ system.`,
+            clinicalRelevance: `Immediate clinical intervention relies on assessing biomarkers and ensuring hemodynamics remain stable.`,
+            correctedTerm: term
+        };
 
-    const data = await generateJSONResponse(prompt, fallback);
-    res.json(data);
+        const data = await generateJSONResponse(prompt, fallback);
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // 2. Related Terms Engine
-app.post('/api/related', async (req, res) => {
-    const { term } = req.body;
-    
-    if (!ai) await new Promise(r => setTimeout(r, 800));
+app.post('/api/related', aiLimiter, validateTermInput, async (req, res, next) => {
+    try {
+        const term = req.sanitizedTerm;
+        
+        if (!ai) await new Promise(r => setTimeout(r, 800));
 
-    const prompt = `Provide exactly 6 related medical terminology concepts for "${term}". Return JSON format: {"terms": ["Term 1", "Term 2", ...]}`;
-    const fallback = {
-         terms: [`${term} Basics`, `${term} Pathology`, `${term} Interventions`, `${term} Pathway`, `${term} Diagnostics`, `${term} Case Study`]
-    };
+        const prompt = `Provide exactly 6 related medical terminology concepts for "${term}". Return JSON format: {"terms": ["Term 1", "Term 2", ...]}`;
+        const fallback = {
+             terms: [`${term} Basics`, `${term} Pathology`, `${term} Interventions`, `${term} Pathway`, `${term} Diagnostics`, `${term} Case Study`]
+        };
 
-    const data = await generateJSONResponse(prompt, fallback);
-    res.json(data);
+        const data = await generateJSONResponse(prompt, fallback);
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // 3. Quiz Engine
-app.post('/api/quiz', async (req, res) => {
-    const { topic, difficulty, numQuestions } = req.body;
-    const questionsCount = numQuestions || 5;
-    const diffLevel = difficulty || 'Medium';
-    
-    if (!ai) await new Promise(r => setTimeout(r, 1500));
+app.post('/api/quiz', aiLimiter, validateQuizInput, async (req, res, next) => {
+    try {
+        const { topic, difficulty, numQuestions } = req.sanitizedQuiz;
+        
+        if (!ai) await new Promise(r => setTimeout(r, 1500));
 
-    const prompt = `Generate exactly ${questionsCount} UNIQUE, DISTINCT, and DIVERSE medical quiz questions on the topic "${topic}" with a difficulty level of "${diffLevel}". Ensure no two questions are the same or cover the exact same concept.
-    
-    CRITICAL INSTRUCTION: You MUST generate EXACTLY ${questionsCount} questions in the array. Do not stop early. Do not generate more or fewer than ${questionsCount}.
+        const prompt = `Generate exactly ${numQuestions} UNIQUE, DISTINCT, and DIVERSE medical quiz questions on the topic "${topic}" with a difficulty level of "${difficulty}". Ensure no two questions are the same or cover the exact same concept.
+        
+        CRITICAL INSTRUCTION: You MUST generate EXACTLY ${numQuestions} questions in the array. Do not stop early. Do not generate more or fewer than ${numQuestions}.
 
-    Return JSON format exactly like:
-    {
-      "questions": [
+        Return JSON format exactly like:
         {
-          "question": "Question text?",
-          "options": [
-            { "id": "A", "label": "Option 1" },
-            { "id": "B", "label": "Option 2" },
-            { "id": "C", "label": "Option 3" },
-            { "id": "D", "label": "Option 4" }
-          ],
-          "correctOption": "B",
-          "explanation": "Explanation text"
-        }
-      ]
-    }`;
+          "questions": [
+            {
+              "question": "Question text?",
+              "options": [
+                { "id": "A", "label": "Option 1" },
+                { "id": "B", "label": "Option 2" },
+                { "id": "C", "label": "Option 3" },
+                { "id": "D", "label": "Option 4" }
+              ],
+              "correctOption": "B",
+              "explanation": "Explanation text"
+            }
+          ]
+        }`;
 
-    const fallbackQuestions = Array(questionsCount).fill(null).map((_, i) => ({
-       question: `[Q${i+1} - ${diffLevel}] A patient presents with symptoms associated with ${topic || 'general pathology'}. What is the primary consideration for presentation ${i+1}?`,
-       options: [
-         { id: 'A', label: `Elevated AST/ALT ratio for variant ${i+1}` },
-         { id: 'B', label: `Positive specific antibody titer for variant ${i+1}` },
-         { id: 'C', label: `Decreased serum albumin for variant ${i+1}` },
-         { id: 'D', label: `Leukocytosis with left shift for variant ${i+1}` }
-       ],
-       correctOption: ['A', 'B', 'C', 'D'][i % 4],
-       explanation: `Explanation for question ${i+1}: This option was chosen because it represents the standard protocol for this specific presentation variant.`
-    }));
+        const fallbackQuestions = Array(numQuestions).fill(null).map((_, i) => ({
+           question: `[Q${i+1} - ${difficulty}] A patient presents with symptoms associated with ${topic || 'general pathology'}. What is the primary consideration for presentation ${i+1}?`,
+           options: [
+             { id: 'A', label: `Elevated AST/ALT ratio for variant ${i+1}` },
+             { id: 'B', label: `Positive specific antibody titer for variant ${i+1}` },
+             { id: 'C', label: `Decreased serum albumin for variant ${i+1}` },
+             { id: 'D', label: `Leukocytosis with left shift for variant ${i+1}` }
+           ],
+           correctOption: ['A', 'B', 'C', 'D'][i % 4],
+           explanation: `Explanation for question ${i+1}: This option was chosen because it represents the standard protocol for this specific presentation variant.`
+        }));
 
-    const fallback = { questions: fallbackQuestions };
+        const fallback = { questions: fallbackQuestions };
 
-    const data = await generateJSONResponse(prompt, fallback);
-    res.json(data);
+        const data = await generateJSONResponse(prompt, fallback);
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // 4. YouTube Engine
-app.get('/api/youtube', async (req, res) => {
-    const { term } = req.query;
-    
+app.get('/api/youtube', validateTermInput, async (req, res, next) => {
     try {
-        const response = await axios.get(`https://www.youtube.com/results?search_query=${encodeURIComponent(term + ' medical educational')}`);
-        const html = response.data;
-        const prefix = 'var ytInitialData = ';
-        const startIdx = html.indexOf(prefix);
-        if (startIdx !== -1) {
-            let endIdx = html.indexOf(';</script>', startIdx);
-            if (endIdx === -1) endIdx = html.indexOf('};</script>', startIdx) + 1;
-            
-            const jsonStr = html.substring(startIdx + prefix.length, endIdx);
-            const data = JSON.parse(jsonStr);
-            const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
-            
-            if (contents) {
-                const videos = [];
-                for (const item of contents) {
-                    if (item.videoRenderer) {
-                        const vid = item.videoRenderer;
-                        videos.push({
-                            id: vid.videoId,
-                            title: vid.title?.runs?.[0]?.text || 'Video',
-                            thumbnail: vid.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vid.videoId}/hqdefault.jpg`,
-                            duration: vid.lengthText?.simpleText || '10:00'
-                        });
-                        if (videos.length >= 2) break;
+        const term = req.sanitizedTerm;
+        
+        try {
+            const response = await axios.get(`https://www.youtube.com/results?search_query=${encodeURIComponent(term + ' medical educational')}`);
+            const html = response.data;
+            const prefix = 'var ytInitialData = ';
+            const startIdx = html.indexOf(prefix);
+            if (startIdx !== -1) {
+                let endIdx = html.indexOf(';</script>', startIdx);
+                if (endIdx === -1) endIdx = html.indexOf('};</script>', startIdx) + 1;
+                
+                const jsonStr = html.substring(startIdx + prefix.length, endIdx);
+                const data = JSON.parse(jsonStr);
+                const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
+                
+                if (contents) {
+                    const videos = [];
+                    for (const item of contents) {
+                        if (item.videoRenderer) {
+                            const vid = item.videoRenderer;
+                            videos.push({
+                                id: vid.videoId,
+                                title: vid.title?.runs?.[0]?.text || 'Video',
+                                thumbnail: vid.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vid.videoId}/hqdefault.jpg`,
+                                duration: vid.lengthText?.simpleText || '10:00'
+                            });
+                            if (videos.length >= 2) break;
+                        }
+                    }
+                    if (videos.length > 0) {
+                        return res.json(videos);
                     }
                 }
-                if (videos.length > 0) {
-                    return res.json(videos);
-                }
             }
+        } catch(e) {
+            console.error("Youtube scrape error:", e.message);
         }
-    } catch(e) {
-        console.error("Youtube scrape error:", e.message);
-    }
 
-    // Fallback if scraping fails for any reason
-    res.json([
-        {
-            id: 'dQw4w9WgXcQ',
-            title: `Understanding ${term || 'Medical Pathology'} - 3D Animation`,
-            thumbnail: `https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg`,
-            duration: '04:32'
-        },
-        {
-            id: '3JZ_D3ELwOQ',
-            title: `Clinical Pearls: ${term || 'Diagnosis Updates'}`,
-            thumbnail: `https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg`,
-            duration: '12:15'
-        }
-    ]);
+        // Fallback if scraping fails for any reason
+        res.json([
+            {
+                id: 'dQw4w9WgXcQ',
+                title: `Understanding ${term || 'Medical Pathology'} - 3D Animation`,
+                thumbnail: `https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg`,
+                duration: '04:32'
+            },
+            {
+                id: '3JZ_D3ELwOQ',
+                title: `Clinical Pearls: ${term || 'Diagnosis Updates'}`,
+                thumbnail: `https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg`,
+                duration: '12:15'
+            }
+        ]);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // 5. Knowledge Graph Engine
-app.post('/api/graph', async (req, res) => {
-    const { term } = req.body;
-    if (!term) return res.status(400).json({ error: "Term required" });
-    
-    if (!ai) await new Promise(r => setTimeout(r, 1500));
+app.post('/api/graph', aiLimiter, validateTermInput, async (req, res, next) => {
+    try {
+        const term = req.sanitizedTerm;
+        
+        if (!ai) await new Promise(r => setTimeout(r, 1500));
 
-    const prompt = `Generate a structured medical knowledge graph for ${term}.
+        const prompt = `Generate a structured medical knowledge graph for ${term}.
 Return ONLY JSON in this format:
 {
   "nodes": [
@@ -228,21 +269,35 @@ Constraints:
     if (!data.edges) data.edges = fallback.edges;
 
     res.json(data);
+    } catch (err) {
+        next(err);
+    }
 });
 
-app.post('/api/explain', async (req, res) => {
-    const { term } = req.body;
-    if (!term) return res.status(400).json({ error: "Term required" });
-    
-    if (!ai) await new Promise(r => setTimeout(r, 500));
+app.post('/api/explain', aiLimiter, validateTermInput, async (req, res, next) => {
+    try {
+        const term = req.sanitizedTerm;
+        
+        if (!ai) await new Promise(r => setTimeout(r, 500));
 
-    const prompt = `Provide a very short (2 sentence) medical explanation for the term "${term}". Return JSON format: {"explanation": "..."}`;
-    const fallback = {
-        explanation: `${term} is an important medical concept. It is closely related to pathophysiological processes requiring clinical attention.`
-    };
+        const prompt = `Provide a very short (2 sentence) medical explanation for the term "${term}". Return JSON format: {"explanation": "..."}`;
+        const fallback = {
+            explanation: `${term} is an important medical concept. It is closely related to pathophysiological processes requiring clinical attention.`
+        };
 
-    const data = await generateJSONResponse(prompt, fallback);
-    res.json(data);
+        const data = await generateJSONResponse(prompt, fallback);
+        res.json(data);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Centralized secure error handling middleware
+app.use((err, req, res, next) => {
+    console.error("Unhandled Server Error:", err);
+    res.status(500).json({ 
+        error: "An unexpected error occurred. Please try again later." 
+    });
 });
 
 app.listen(port, () => {

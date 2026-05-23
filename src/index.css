@@ -5,8 +5,7 @@
 @tailwind utilities;
 
 /* ============================================
-   NEXORA DESIGN SYSTEM TOKENS
-   Applied globally for light-theme consistency
+   NEXORA DESIGN SYSTEM TOKENS — Light Mode
    ============================================ */
 :root {
   --nx-background: 0 0% 100%;
@@ -28,20 +27,60 @@
   --nx-shadow-md: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
   --nx-shadow-lg: 0 12px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
   --nx-shadow-dashboard: 0 25px 80px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
+
+  /* Card and surface tokens */
+  --surface: hsl(0 0% 100%);
+  --surface-elevated: hsl(0 0% 100%);
+  --surface-muted: hsl(0 0% 96%);
+  --border-color: hsl(0 0% 90%);
+  --text-primary: hsl(210 14% 17%);
+  --text-secondary: hsl(215 8% 47%);
+  --text-muted: hsl(215 8% 65%);
 }
 
 /* ============================================
-   BASE LAYER — Light theme body defaults
+   NEXORA DESIGN SYSTEM TOKENS — Dark Mode
+   ============================================ */
+.dark {
+  --nx-background: 222 18% 10%;
+  --nx-foreground: 210 20% 92%;
+  --nx-primary: 210 20% 92%;
+  --nx-primary-foreground: 222 18% 10%;
+  --nx-secondary: 222 15% 16%;
+  --nx-secondary-foreground: 210 20% 92%;
+  --nx-muted: 222 15% 16%;
+  --nx-muted-foreground: 215 12% 55%;
+  --nx-accent: 239 84% 67%;
+  --nx-accent-foreground: 0 0% 100%;
+  --nx-border: 222 15% 22%;
+  --nx-ring: 239 84% 67%;
+  --nx-shadow-sm: 0 1px 3px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.04);
+  --nx-shadow-md: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
+  --nx-shadow-lg: 0 12px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --nx-shadow-dashboard: 0 25px 80px -12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+
+  --surface: hsl(222 18% 13%);
+  --surface-elevated: hsl(222 18% 16%);
+  --surface-muted: hsl(222 15% 18%);
+  --border-color: hsl(222 15% 22%);
+  --text-primary: hsl(210 20% 92%);
+  --text-secondary: hsl(215 12% 55%);
+  --text-muted: hsl(215 12% 40%);
+}
+
+/* ============================================
+   BASE LAYER
    ============================================ */
 @layer base {
   body {
     font-family: 'Inter', sans-serif;
-    background-color: hsl(0 0% 100%);
-    color: hsl(210 14% 17%);
+    background-color: hsl(var(--nx-background));
+    color: hsl(var(--nx-foreground));
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   ::selection {
@@ -54,27 +93,30 @@
    COMPONENT UTILITIES
    ============================================ */
 @layer components {
-  /* Primary card component — white bg, border, shadow */
+  /* Primary card component */
   .card-panel {
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(0 0% 90%);
+    background: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 1rem;
     box-shadow: var(--nx-shadow-sm);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
   .card-panel-elevated {
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(0 0% 90%);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 1rem;
     box-shadow: var(--nx-shadow-md);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
   /* Keep glass-panel as alias for backward compat in 3D pages */
   .glass-panel {
-    background: hsl(0 0% 100%);
-    border: 1px solid hsl(0 0% 90%);
+    background: var(--surface);
+    border: 1px solid var(--border-color);
     border-radius: 1rem;
     box-shadow: var(--nx-shadow-sm);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
   /* Dark glass panel for 3D page overlays */
@@ -121,4 +163,21 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ============================================
+   DARK MODE SCROLLBAR
+   ============================================ */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: hsl(222 18% 13%);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(222 15% 28%);
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(222 15% 38%);
 }

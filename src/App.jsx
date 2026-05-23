@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MainLayout from './layouts/MainLayout';
@@ -9,6 +9,7 @@ import QuizConfigurator from './pages/QuizConfigurator';
 import QuizEngine from './pages/QuizEngine';
 import AnatomyVisualizer from './pages/AnatomyVisualizer';
 import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
+import useAppStore from './store/useAppStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +21,17 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const { darkMode } = useAppStore();
+
+  // Sync dark mode class on initial mount and whenever it changes
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>

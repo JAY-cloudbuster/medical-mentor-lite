@@ -46,8 +46,8 @@ export const getYoutubeVideos = async (term) => {
   return response.data;
 };
 
-export const getQuiz = async (config) => {
-  const response = await api.post('/quiz', config);
+export const getQuiz = async (topic, difficulty, numQuestions) => {
+  const response = await api.post('/quiz', { topic, difficulty, numQuestions });
   return response.data;
 };
 

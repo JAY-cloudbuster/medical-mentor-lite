@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+model User {
+  id                String             @id @default(uuid())
+  supabaseId        String             @unique
+  email             String             @unique
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  profile           UserProfile?
+  quizAttempts      QuizAttempt[]
+  savedTerms        SavedTerm[]
+  dashboardActivity DashboardActivity[]
+  learningSessions  LearningSession[]
+}
+
+model UserProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String?
+  xp          Int      @default(0)
+  streak      Int      @default(0)
+  lastActive  DateTime @default(now())
+}
+
+model QuizAttempt {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        String
+  difficulty   String
+  score        Int
+  totalQs      Int
+  createdAt    DateTime @default(now())
+}
+
+model SavedTerm {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term        String
+  definition  String
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, term])
+}
+
+model DashboardActivity {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionType  String
+  details     Json?
+  createdAt   DateTime @default(now())
+}
+
+model LearningSession {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  durationMin Int
+  createdAt   DateTime @default(now())
+}

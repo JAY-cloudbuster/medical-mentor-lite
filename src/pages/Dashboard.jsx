@@ -10,17 +10,20 @@ const Dashboard = () => {
   
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ['profile'],
-    queryFn: fetchProfile
+    queryFn: fetchProfile,
+    refetchInterval: 5000
   });
 
   const { data: activities, isLoading: loadingActivities } = useQuery({
     queryKey: ['activities'],
-    queryFn: fetchActivities
+    queryFn: fetchActivities,
+    refetchInterval: 5000
   });
 
   const { data: savedTerms, isLoading: loadingTerms } = useQuery({
     queryKey: ['savedTerms'],
-    queryFn: fetchSavedTerms
+    queryFn: fetchSavedTerms,
+    refetchInterval: 5000
   });
 
   if (loadingProfile) {

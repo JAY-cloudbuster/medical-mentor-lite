@@ -1,5 +1,6 @@
 import express from 'express';
 import { defineTerm, getRelatedTerms, generateQuiz, getGraph } from '../controllers/gemini.controller.js';
+import { getYoutubeVideos } from '../controllers/youtube.controller.js';
 import { getProfile, getActivities, getSavedTerms } from '../controllers/dashboard.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
@@ -11,6 +12,7 @@ router.post('/define', requireAuth, aiLimiter, defineTerm);
 router.post('/related', requireAuth, aiLimiter, getRelatedTerms);
 router.post('/quiz', requireAuth, aiLimiter, generateQuiz);
 router.post('/graph', requireAuth, aiLimiter, getGraph);
+router.get('/youtube', requireAuth, getYoutubeVideos);
 
 // Protected Dashboard Routes
 router.get('/dashboard/profile', requireAuth, getProfile);

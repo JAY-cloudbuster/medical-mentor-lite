@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { defineTerm, getRelatedTerms, getYoutubeVideos } from '../services/apiService';
 import useAppStore from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
-import { useDebounce } from '../hooks/useDebounce';
 import { capitalizeWords, truncateText } from '../utils/textUtils';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
@@ -12,17 +11,38 @@ const TerminologyExplorer = () => {
   const navigate = useNavigate();
   const { searchTerm, setSearchTerm, correctedTerm, setCorrectedTerm, definitionData, setDefinitionData, relatedTerms, setRelatedTerms, youtubeVideos, setYoutubeVideos } = useAppStore();
 
-  const debouncedTerm = useDebounce(searchTerm || 'Atrial Fibrillation', 600);
+  const [activeSearch, setActiveSearch] = useState(searchTerm || 'Atrial Fibrillation');
 
-  const { data: defData, isLoading: isLoadingDef, isError: isErrorDef } = useQuery({ queryKey: ['definition', debouncedTerm], queryFn: () => defineTerm(debouncedTerm), enabled: !!debouncedTerm });
-  const { data: relTerms, isLoading: isLoadingRel } = useQuery({ queryKey: ['related', debouncedTerm], queryFn: () => getRelatedTerms(debouncedTerm), enabled: !!debouncedTerm });
-  const { data: videos, isLoading: isLoadingVid } = useQuery({ queryKey: ['youtube', debouncedTerm], queryFn: () => getYoutubeVideos(debouncedTerm), enabled: !!debouncedTerm });
+  const { data: defData, isLoading: isLoadingDef, isError: isErrorDef } = useQuery({ queryKey: ['definition', activeSearch], queryFn: () => defineTerm(activeSearch), enabled: !!activeSearch });
+  const { data: relTerms, isLoading: isLoadingRel } = useQuery({ queryKey: ['related', activeSearch], queryFn: () => getRelatedTerms(activeSearch), enabled: !!activeSearch });
+  const { data: videos, isLoading: isLoadingVid } = useQuery({ queryKey: ['youtube', activeSearch], queryFn: () => getYoutubeVideos(activeSearch), enabled: !!activeSearch });
 
-  useEffect(() => { if (defData) { if (defData.correctedTerm && defData.correctedTerm.toLowerCase() !== debouncedTerm.toLowerCase()) { setCorrectedTerm(defData.correctedTerm); } else { setCorrectedTerm(null); } setDefinitionData(defData); } }, [defData]);
-  useEffect(() => { if (relTerms) setRelatedTerms(relTerms.terms || []); }, [relTerms]);
-  useEffect(() => { if (videos) setYoutubeVideos(videos); }, [videos]);
+  useEffect(() => { 
+    if (defData) { 
+      if (defData.correctedTerm && defData.correctedTerm.toLowerCase() !== activeSearch.toLowerCase()) { 
+        setCorrectedTerm(defData.correctedTerm); 
+      } else { 
+        setCorrectedTerm(null); 
+      } 
+      setDefinitionData(defData); 
+    } 
+  }, [defData, activeSearch, setCorrectedTerm, setDefinitionData]);
 
-  const handleRelatedClick = (term) => { setSearchTerm(term); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  useEffect(() => { if (relTerms) setRelatedTerms(relTerms.terms || []); }, [relTerms, setRelatedTerms]);
+  useEffect(() => { if (videos) setYoutubeVideos(videos); }, [videos, setYoutubeVideos]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      setActiveSearch(searchTerm.trim());
+    }
+  };
+
+  const handleRelatedClick = (term) => { 
+    setSearchTerm(term); 
+    setActiveSearch(term);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden font-inter text-gray-900 dark:text-white">
@@ -31,14 +51,14 @@ const TerminologyExplorer = () => {
                       bg-white/80 dark:bg-gray-950/80
                       backdrop-blur-md border-b border-gray-100 dark:border-gray-700/60
                       transition-colors duration-300">
-        <div className="max-w-4xl relative group">
+        <form onSubmit={handleSearchSubmit} className="max-w-4xl relative group">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
             <span className="material-symbols-outlined">search</span>
           </div>
           <input
             className="w-full bg-gray-50 dark:bg-gray-800/80
                        border border-gray-200 dark:border-gray-700/60
-                       rounded-xl py-3.5 pl-12 pr-6
+                       rounded-xl py-3.5 pl-12 pr-28
                        text-gray-900 dark:text-white
                        placeholder:text-gray-400 dark:placeholder:text-gray-500
                        focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-900/30
@@ -46,16 +66,22 @@ const TerminologyExplorer = () => {
             placeholder="Explore medical terminology, pathways, or concepts..."
             type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
           />
-          {isLoadingDef && (
-            <div className="absolute inset-y-0 right-4 flex items-center">
-               <span className="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full"></span>
-            </div>
-          )}
-        </div>
+          <div className="absolute inset-y-0 right-2 flex items-center gap-2">
+            {isLoadingDef && (
+              <span className="animate-spin h-4 w-4 border-2 border-indigo-500 border-t-transparent rounded-full"></span>
+            )}
+            <button
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            >
+              Search
+            </button>
+          </div>
+        </form>
         <AnimatePresence>
           {correctedTerm && !isLoadingDef && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-2 ml-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Did you mean <button onClick={() => setSearchTerm(correctedTerm)} className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline italic">{correctedTerm}</button>?</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Did you mean <button onClick={() => { setSearchTerm(correctedTerm); setActiveSearch(correctedTerm); }} className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline italic">{correctedTerm}</button>?</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -80,7 +106,7 @@ const TerminologyExplorer = () => {
              ) : definitionData ? (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <span className="text-indigo-600 dark:text-indigo-400 text-xs tracking-[0.2em] uppercase font-semibold mb-3 block">Core Pathology Term</span>
-                  <h1 className="text-4xl lg:text-5xl font-display text-gray-900 dark:text-white mb-8">{capitalizeWords(debouncedTerm)}</h1>
+                  <h1 className="text-4xl lg:text-5xl font-display text-gray-900 dark:text-white mb-8">{capitalizeWords(activeSearch)}</h1>
 
                   <div className="space-y-8">
                     <section>
@@ -110,7 +136,7 @@ const TerminologyExplorer = () => {
                         <span className="material-symbols-outlined text-base">bookmark</span> Save to Library
                       </button>
                       <button
-                        onClick={() => navigate(`/graph/${encodeURIComponent(debouncedTerm)}`)}
+                        onClick={() => navigate(`/graph/${encodeURIComponent(activeSearch)}`)}
                         className="bg-gray-900 dark:bg-indigo-600 text-white px-5 py-2.5 rounded-full font-medium text-sm flex items-center gap-2 hover:bg-gray-800 dark:hover:bg-indigo-500 transition-colors">
                         <span className="material-symbols-outlined text-sm">hub</span> View Knowledge Graph
                       </button>

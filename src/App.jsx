@@ -11,6 +11,7 @@ import AnatomyVisualizer from './pages/AnatomyVisualizer';
 import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import History from './pages/History';
 import ProtectedRoute from './components/ProtectedRoute';
 import useAppStore from './store/useAppStore';
 import useAuthStore, { setQueryClient } from './store/useAuthStore';
@@ -80,6 +81,7 @@ function App() {
               <Route path="/quiz" element={<QuizConfigurator />} />
               <Route path="/quiz/engine" element={<QuizEngine />} />
               <Route path="/anatomy" element={<AnatomyVisualizer />} />
+              <Route path="/history" element={<History />} />
               <Route path="/graph/:term" element={<KnowledgeGraphPage />} />
             </Route>
           </Route>

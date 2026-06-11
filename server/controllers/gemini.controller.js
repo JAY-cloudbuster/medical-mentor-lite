@@ -1,7 +1,7 @@
 import { generateJSONResponse } from '../services/gemini.service.js';
 import axios from 'axios';
 import prisma from '../config/prisma.js';
-import { logAiUsage, logSearch } from '../services/analytics.service.js';
+import { logAiUsage, logSearch, trackEvent } from '../services/analytics.service.js';
 
 export const defineTerm = async (req, res, next) => {
   const startTime = Date.now();
@@ -18,6 +18,7 @@ export const defineTerm = async (req, res, next) => {
     const data = await generateJSONResponse(prompt);
     
     logAiUsage(prismaId, 'define_term', prompt.length, JSON.stringify(data).length, Date.now() - startTime);
+    trackEvent(prismaId, 'TERM_SEARCHED', 'definition', { term });
     await prisma.dashboardActivity.create({
       data: { userId: prismaId, actionType: 'TERM_SEARCHED', details: { term } }
     }).catch(err => console.error("Activity log error:", err));
@@ -73,6 +74,7 @@ export const generateQuiz = async (req, res, next) => {
     const data = await generateJSONResponse(prompt);
     
     logAiUsage(prismaId, 'generate_quiz', prompt.length, JSON.stringify(data).length, Date.now() - startTime);
+    trackEvent(prismaId, 'QUIZ_GENERATED', 'quiz', { topic, difficulty, numQuestions });
     
     res.json(data);
   } catch (err) {
@@ -108,6 +110,7 @@ CRITICAL REQUIREMENTS:
     const data = await generateJSONResponse(prompt);
     
     logAiUsage(prismaId, 'knowledge_graph', prompt.length, JSON.stringify(data).length, Date.now() - startTime);
+    trackEvent(prismaId, 'GRAPH_VIEWED', 'graph', { term });
     
     res.json(data);
   } catch (err) {

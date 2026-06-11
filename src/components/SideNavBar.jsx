@@ -42,14 +42,10 @@ const SideNavBar = () => {
           <span className="material-symbols-outlined text-xl">biotech</span>
           <span>Diagnostics</span>
         </NavLink>
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg
-                        text-gray-400 dark:text-gray-500
-                        hover:bg-gray-50 dark:hover:bg-gray-800/60
-                        hover:text-gray-600 dark:hover:text-gray-300
-                        transition-all duration-200 cursor-pointer text-sm">
+        <NavLink to="/history" className={navLink}>
           <span className="material-symbols-outlined text-xl">history</span>
           <span>History</span>
-        </div>
+        </NavLink>
       </div>
 
       <div className="mt-auto border-t border-gray-200 dark:border-gray-700/60 pt-4 space-y-1">

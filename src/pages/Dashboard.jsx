@@ -1,12 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
-import { fetchProfile, fetchActivities, fetchSavedTerms } from '../services/dashboardService';
+import useAppStore from '../store/useAppStore';
+import { fetchProfile, fetchActivities, fetchRecentSearches } from '../services/dashboardService';
 import { Loader2 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { setSearchTerm } = useAppStore();
   
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -20,11 +24,16 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const { data: savedTerms, isLoading: loadingTerms } = useQuery({
-    queryKey: ['savedTerms', user?.id],
-    queryFn: fetchSavedTerms,
+  const { data: recentSearches, isLoading: loadingRecent } = useQuery({
+    queryKey: ['recentSearches', user?.id],
+    queryFn: fetchRecentSearches,
     enabled: !!user,
   });
+
+  const handleCardClick = (term) => {
+    setSearchTerm(term);
+    navigate('/terminology');
+  };
 
   if (loadingProfile) {
     return (
@@ -69,11 +78,15 @@ const Dashboard = () => {
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
-            {loadingTerms ? (
+            {loadingRecent ? (
                <div className="text-sm text-gray-500">Loading your terms...</div>
-            ) : savedTerms?.length > 0 ? (
-              savedTerms.map((termItem, i) => (
-                <div key={i} className="min-w-[260px] card-panel p-5 rounded-xl group hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+            ) : recentSearches?.length > 0 ? (
+               recentSearches.map((termItem, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleCardClick(termItem.term)}
+                  className="min-w-[260px] card-panel p-5 rounded-xl group hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                >
                   <div className="flex justify-between mb-3">
                     <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-200 dark:border-indigo-700/50">
                       Term
@@ -86,7 +99,7 @@ const Dashboard = () => {
               ))
             ) : (
               <div className="text-sm text-gray-500 dark:text-gray-400 p-4 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl w-full">
-                No recent terms found. Use the Terminology Explorer to search for medical terms!
+                No recent searches found. Use the Terminology Explorer to search for medical terms!
               </div>
             )}
           </div>

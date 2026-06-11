@@ -1,12 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
-import { fetchActivities, fetchSavedTerms } from '../services/dashboardService';
+import useAppStore from '../store/useAppStore';
+import { fetchActivities, fetchRecentSearches } from '../services/dashboardService';
 import { Loader2 } from 'lucide-react';
 
 const History = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { setSearchTerm } = useAppStore();
 
   const { data: activities, isLoading: loadingActivities } = useQuery({
     queryKey: ['activities', user?.id],
@@ -15,14 +19,19 @@ const History = () => {
     staleTime: 0,
   });
 
-  const { data: savedTerms, isLoading: loadingTerms } = useQuery({
-    queryKey: ['savedTerms', user?.id],
-    queryFn: fetchSavedTerms,
+  const { data: recentSearches, isLoading: loadingRecent } = useQuery({
+    queryKey: ['recentSearches', user?.id],
+    queryFn: fetchRecentSearches,
     enabled: !!user,
     staleTime: 0,
   });
 
-  const isLoading = loadingActivities || loadingTerms;
+  const isLoading = loadingActivities || loadingRecent;
+
+  const handleCardClick = (term) => {
+    setSearchTerm(term);
+    navigate('/terminology');
+  };
 
   if (isLoading) {
     return (
@@ -52,10 +61,14 @@ const History = () => {
         <section className="col-span-12 lg:col-span-6 flex flex-col">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Recent Focus Areas</h2>
           <div className="card-panel flex-1 p-5 rounded-2xl space-y-4 max-h-[500px] overflow-y-auto">
-            {savedTerms?.length > 0 ? (
+            {recentSearches?.length > 0 ? (
               <div className="grid grid-cols-1 gap-3">
-                {savedTerms.map((termItem, i) => (
-                  <div key={i} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/40 group hover:shadow-sm transition-all duration-300">
+                {recentSearches.map((termItem, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleCardClick(termItem.term)}
+                    className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/40 group hover:shadow-sm transition-all duration-300 cursor-pointer"
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-200 dark:border-indigo-700/50">
                         Term

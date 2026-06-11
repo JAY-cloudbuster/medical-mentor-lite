@@ -45,24 +45,38 @@ const JAMAAnimatedLogo = ({ size = 'large' }) => {
   // Dynamic stroke widths
   const strokeWidth = size === 'large' ? 1.5 : 2.5;
 
-  // Let's compute positions
-  // JA (Jayesh)
-  const jaX = 200 + rx * Math.cos(angle);
-  const jaY = 200 + ry * Math.sin(angle);
-  const jaZ = Math.sin(angle); // ranges from -1 (back) to 1 (front)
-  const jaScale = 1 + 0.18 * jaZ;
-  const jaOpacity = 0.45 + 0.55 * ((jaZ + 1) / 2);
+  // Nodes data to rotate around the earth globe
+  const nodesData = [
+    { label: 'SU', name: 'SUJITH' },
+    { label: 'BH', name: 'BHAVITH' },
+    { label: 'JA', name: 'JAYESH' },
+    { label: 'CH', name: 'CHAITANYA' },
+    { label: 'MA', name: 'MAHESH' }
+  ];
 
-  // MA (Mahesh)
-  const maAngle = angle + Math.PI;
-  const maX = 200 + rx * Math.cos(maAngle);
-  const maY = 200 + ry * Math.sin(maAngle);
-  const maZ = Math.sin(maAngle);
-  const maScale = 1 + 0.18 * maZ;
-  const maOpacity = 0.45 + 0.55 * ((maZ + 1) / 2);
+  // Calculate 3D position, scaling, opacity, and depth ordering for each node dynamically
+  const nodes = nodesData.map((node, i) => {
+    const nodeAngle = angle + (i * 2 * Math.PI) / nodesData.length;
+    const x = 200 + rx * Math.cos(nodeAngle);
+    const y = 200 + ry * Math.sin(nodeAngle);
+    const z = Math.sin(nodeAngle); // ranges from -1 (back) to 1 (front)
+    const scale = 1 + 0.18 * z;
+    const opacity = 0.45 + 0.55 * ((z + 1) / 2);
+    const isFront = z >= 0;
+    return {
+      ...node,
+      angle: nodeAngle,
+      x,
+      y,
+      z,
+      scale,
+      opacity,
+      isFront
+    };
+  });
 
   // Compute ghost clones for the motion trails
-  const renderTrails = (baseAngle, label, isMa) => {
+  const renderTrails = (baseAngle, label, isFront) => {
     const ghosts = [0.08, 0.16, 0.24];
     return ghosts.map((delay, idx) => {
       const gAngle = baseAngle - delay;
@@ -71,9 +85,8 @@ const JAMAAnimatedLogo = ({ size = 'large' }) => {
       const z = Math.sin(gAngle);
       
       const isGhostFront = z >= 0;
-      const isBaseFront = (isMa ? maZ : jaZ) >= 0;
       
-      if (isGhostFront !== isBaseFront) return null;
+      if (isGhostFront !== isFront) return null;
 
       const scale = (1 + 0.18 * z) * 0.9;
       const opacity = (0.45 + 0.55 * ((z + 1) / 2)) * (0.45 - idx * 0.15);
@@ -143,23 +156,25 @@ const JAMAAnimatedLogo = ({ size = 'large' }) => {
   const displayStyle = size === 'large' ? { maxWidth: '850px', maxHeight: '850px' } : {};
 
   // DOM Layer Ordering: back nodes -> globe -> front nodes
-  const isJaFront = jaZ >= 0;
-  
   const backNodes = (
     <g>
-      {!isJaFront && renderTrails(angle, 'JA', false)}
-      {!isJaFront && renderLetterNode('JA', 'JAYESH', jaX, jaY, jaZ, jaOpacity, jaScale)}
-      {isJaFront && renderTrails(maAngle, 'MA', true)}
-      {isJaFront && renderLetterNode('MA', 'MAHESH', maX, maY, maZ, maOpacity, maScale)}
+      {nodes.filter(n => !n.isFront).map(n => (
+        <React.Fragment key={n.label}>
+          {renderTrails(n.angle, n.label, false)}
+          {renderLetterNode(n.label, n.name, n.x, n.y, n.z, n.opacity, n.scale)}
+        </React.Fragment>
+      ))}
     </g>
   );
 
   const frontNodes = (
     <g>
-      {isJaFront && renderTrails(angle, 'JA', false)}
-      {isJaFront && renderLetterNode('JA', 'JAYESH', jaX, jaY, jaZ, jaOpacity, jaScale)}
-      {!isJaFront && renderTrails(maAngle, 'MA', true)}
-      {!isJaFront && renderLetterNode('MA', 'MAHESH', maX, maY, maZ, maOpacity, maScale)}
+      {nodes.filter(n => n.isFront).map(n => (
+        <React.Fragment key={n.label}>
+          {renderTrails(n.angle, n.label, true)}
+          {renderLetterNode(n.label, n.name, n.x, n.y, n.z, n.opacity, n.scale)}
+        </React.Fragment>
+      ))}
     </g>
   );
 

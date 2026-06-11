@@ -45,7 +45,7 @@ const KnowledgeGraphPage = () => {
       </div>
 
       {/* ── TOP-LEFT: Header ── */}
-      <div className="absolute top-4 left-4 z-30 max-w-[calc(100vw-2rem)] pointer-events-none">
+      <div className="absolute top-20 left-4 z-30 max-w-[calc(100vw-2rem)] pointer-events-none">
         <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 px-4 py-2.5 rounded-xl flex items-center gap-3 border-l-4 border-l-indigo-500 pointer-events-auto shadow-lg">
           <div className="min-w-0">
             <div className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-0.5">Knowledge Topology</div>
@@ -62,14 +62,14 @@ const KnowledgeGraphPage = () => {
 
       {/* ── RIGHT: Node info panel — scrollable on small screens ── */}
       {selectedNode && (
-        <div className="absolute top-4 right-4 z-30 w-64 lg:w-72 max-h-[calc(100dvh-2rem)] overflow-y-auto pointer-events-none">
+        <div className="absolute top-20 right-4 z-30 w-64 lg:w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto pointer-events-none">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 p-4 rounded-2xl shadow-xl pointer-events-auto">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[10px] uppercase font-semibold tracking-widest text-gray-400 dark:text-gray-500">Selected Node</span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase border ${
                 selectedNode.type === 'disease' ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-500 border-rose-200 dark:border-rose-700' :
                 selectedNode.type === 'symptom' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-500 border-amber-200 dark:border-amber-700' :
-                selectedNode.type === 'drug' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 border-indigo-200 dark:border-indigo-700' :
+                selectedNode.type === 'drug' ? 'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-500 border-cyan-200 dark:border-cyan-700' :
                 'bg-violet-50 dark:bg-violet-900/30 text-violet-500 border-violet-200 dark:border-violet-700'
               }`}>{selectedNode.type}</span>
             </div>
@@ -104,7 +104,7 @@ const KnowledgeGraphPage = () => {
           {[
             { label: 'Disease', color: 'bg-rose-500' },
             { label: 'Symptom', color: 'bg-amber-500' },
-            { label: 'Drug', color: 'bg-indigo-500' },
+            { label: 'Drug', color: 'bg-cyan-400' },
             { label: 'Concept', color: 'bg-violet-500' },
           ].map(item => (
             <div key={item.label} className="flex items-center gap-1.5">

@@ -27,7 +27,7 @@ const TerminologyExplorer = () => {
   return (
     <div className="min-h-screen relative overflow-hidden font-inter text-gray-900 dark:text-white">
       {/* Search Bar */}
-      <div className="sticky top-16 z-30 px-6 lg:px-8 py-5
+      <div className="sticky top-16 z-30 px-6 lg:px-8 pt-2 pb-4 -mt-12
                       bg-white/80 dark:bg-gray-950/80
                       backdrop-blur-md border-b border-gray-100 dark:border-gray-700/60
                       transition-colors duration-300">
@@ -61,7 +61,7 @@ const TerminologyExplorer = () => {
         </AnimatePresence>
       </div>
 
-      <div className="px-6 lg:px-8 pb-12 flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto mt-6">
+      <div className="px-6 lg:px-8 pb-12 flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto mt-32">
         {/* Left Panel */}
         <div className="lg:w-3/5 space-y-6">
           <div className="card-panel-elevated p-8 lg:p-10 rounded-2xl relative overflow-hidden min-h-[500px]">
@@ -157,7 +157,7 @@ const TerminologyExplorer = () => {
                  ))}
                </div>
             ) : (
-                <div className="text-center p-4 text-gray-400 dark:text-gray-500 text-sm">No visual assets available.</div>
+                 <div className="text-center p-4 text-gray-400 dark:text-gray-500 text-sm">No visual assets available.</div>
             )}
           </div>
 
@@ -169,22 +169,22 @@ const TerminologyExplorer = () => {
             {isLoadingRel ? (
                  <div className="flex flex-wrap gap-2">{[1,2,3,4,5].map(i => <div key={i} className="h-9 w-24 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>)}</div>
             ) : (
-                <div className="flex flex-wrap gap-2">
-                  {relatedTerms.map((term, i) => (
-                      <button onClick={() => handleRelatedClick(term)} key={i} className="px-4 py-2.5 rounded-lg
-                                bg-gray-50 dark:bg-gray-800/60
-                                border border-gray-200 dark:border-gray-700/50
-                                hover:border-indigo-300 dark:hover:border-indigo-600
-                                hover:bg-indigo-50 dark:hover:bg-indigo-900/20
-                                text-sm font-medium transition-all duration-300
-                                flex items-center gap-2 group
-                                text-gray-600 dark:text-gray-400
-                                hover:text-indigo-600 dark:hover:text-indigo-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 opacity-50 group-hover:opacity-100"></span>
-                        {term}
-                      </button>
-                  ))}
-                </div>
+                 <div className="flex flex-wrap gap-2">
+                   {relatedTerms.map((term, i) => (
+                       <button onClick={() => handleRelatedClick(term)} key={i} className="px-4 py-2.5 rounded-lg
+                                 bg-gray-50 dark:bg-gray-800/60
+                                 border border-gray-200 dark:border-gray-700/50
+                                 hover:border-indigo-300 dark:hover:border-indigo-600
+                                 hover:bg-indigo-50 dark:hover:bg-indigo-900/20
+                                 text-sm font-medium transition-all duration-300
+                                 flex items-center gap-2 group
+                                 text-gray-600 dark:text-gray-400
+                                 hover:text-indigo-600 dark:hover:text-indigo-400">
+                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 opacity-50 group-hover:opacity-100"></span>
+                         {term}
+                       </button>
+                   ))}
+                 </div>
             )}
           </div>
         </div>

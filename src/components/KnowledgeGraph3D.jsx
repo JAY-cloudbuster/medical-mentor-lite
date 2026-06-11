@@ -7,10 +7,10 @@ import useAppStore from '../store/useAppStore';
 
 // Colors for node types based on requirement
 const NODE_COLORS = {
-  disease: '#ff50fc',   // using secondary (pinkish) or red
-  symptom: '#eab308',   // yellow
-  drug: '#43f3f6',      // primary (blueish)
-  concept: '#bf81ff'    // purple (tertiary)
+  disease: '#f43f5e',   // Tailwind Rose 500 (pinkish red)
+  symptom: '#f59e0b',   // Tailwind Amber 500 (amber yellow)
+  drug: '#22d3ee',      // Tailwind Cyan 400 (glow cyan)
+  concept: '#8b5cf6'    // Tailwind Violet 500 (violet purple)
 };
 
 const NodeMesh = React.memo(({ node, position, isCentral, onSelect }) => {

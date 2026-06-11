@@ -1,13 +1,11 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3001/api';
+import api from './apiService';
 
 export const fetchGraph = async (term) => {
-  const response = await axios.post(`${API_URL}/graph`, { term });
+  const response = await api.post('/graph', { term });
   return response.data;
 };
 
 export const fetchNodeInfo = async (term) => {
-  const response = await axios.post(`${API_URL}/explain`, { term });
+  const response = await api.post('/explain', { term });
   return response.data;
 };

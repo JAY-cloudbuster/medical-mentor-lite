@@ -12,12 +12,14 @@ const History = () => {
     queryKey: ['activities', user?.id],
     queryFn: fetchActivities,
     enabled: !!user,
+    staleTime: 0,
   });
 
   const { data: savedTerms, isLoading: loadingTerms } = useQuery({
     queryKey: ['savedTerms', user?.id],
     queryFn: fetchSavedTerms,
     enabled: !!user,
+    staleTime: 0,
   });
 
   const isLoading = loadingActivities || loadingTerms;
@@ -58,7 +60,9 @@ const History = () => {
                       <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-200 dark:border-indigo-700/50">
                         Term
                       </span>
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500">Searched</span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+                        {termItem.createdAt ? new Date(termItem.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Searched'}
+                      </span>
                     </div>
                     <h3 className="text-base font-semibold mb-1 text-gray-900 dark:text-white">{termItem.term}</h3>
                     <p className="text-xs text-gray-400 dark:text-gray-500">{termItem.definition}</p>
@@ -87,7 +91,7 @@ const History = () => {
                       <span className="material-symbols-outlined text-[12px] text-indigo-500 dark:text-indigo-400">check_circle</span>
                     </div>
                     <div className="text-[10px] font-semibold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-0.5">
-                      {new Date(entry.createdAt).toLocaleDateString()}
+                      {new Date(entry.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">{entry.actionType.replace(/_/g, ' ')}</div>
                     <div className="text-xs text-gray-400 dark:text-gray-500">{entry.details?.term || entry.details?.topic || 'General Activity'}</div>

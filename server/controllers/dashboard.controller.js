@@ -62,7 +62,8 @@ export const getSavedTerms = async (req, res, next) => {
 
     const recentTerms = recentSearches.map(search => ({
       term: search.searchTerm,
-      definition: search.searchCategory || 'Recently searched term'
+      definition: search.searchCategory || 'Recently searched term',
+      createdAt: search.createdAt
     }));
 
     res.json(recentTerms);

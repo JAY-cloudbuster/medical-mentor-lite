@@ -78,6 +78,20 @@ The platform features a clean **Nexora-inspired SaaS design system** with smooth
 
 </td>
 </tr>
+<tr>
+<td width="50%">
+
+### 📜 Study History & Timeline
+- Persistent cloud-based activity log synced to Supabase
+- Precise **Date & Time timestamps** for each search and quiz attempt
+- Real-time page updates bypassing React Query cache
+- Interactive cards for rapid review of focus areas
+
+</td>
+<td width="50%">
+
+</td>
+</tr>
 </table>
 
 <br/>
@@ -152,6 +166,8 @@ medix-ai/
 | **AI Model** | Google Gemini 2.5 Flash | Medical content generation & quiz creation |
 | **Search** | Fuse.js 7 | Client-side fuzzy search |
 | **Icons** | Lucide React + Material Symbols | Consistent iconography |
+| **Database** | Supabase (PostgreSQL) | Cloud database for user profile, quiz attempts, and activity logs |
+| **ORM** | Prisma | Typesafe database schema mapping & query building |
 
 <br/>
 

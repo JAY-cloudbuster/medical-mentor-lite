@@ -15,6 +15,11 @@ export const fetchSavedTerms = async () => {
   return response.data;
 };
 
+export const fetchRecentSearches = async () => {
+  const response = await api.get('/dashboard/recent-searches');
+  return response.data;
+};
+
 export const saveTerm = async (term, definition, pathophysiology, clinicalRelevance) => {
   const response = await api.post('/dashboard/terms', {
     term,
